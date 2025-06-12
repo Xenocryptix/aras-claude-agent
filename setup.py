@@ -5,7 +5,7 @@ setup(
     version="1.0.0",
     description="MCP Server for Aras Innovator integration with Claude Desktop",
     author="D. Theoden",
-    author_email="info@arasdeveloper.com",
+    author_email="hello@arasdeveloper.com",
     url="https://www.arasdeveloper.com",
     packages=find_packages(),
     install_requires=[
