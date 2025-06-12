@@ -1,0 +1,16 @@
+# 🔐 Aras Innovator Configuration
+# Copy this file to .env and update with your actual credentials
+
+# Your Aras Innovator server URL (include /InnovatorServer)
+ARAS_URL=https://your-aras-server.com/InnovatorServer
+
+# Database name in Aras
+ARAS_DATABASE=InnovatorSolutions
+
+# Your Aras username
+ARAS_USERNAME=your-username
+
+# Your Aras password
+ARAS_PASSWORD=your-password
+
+# 💡 Tip: Keep this file secure and never commit it to version control! 
