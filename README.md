@@ -12,12 +12,31 @@ This Model Context Protocol (MCP) server enables Claude Desktop to interact with
 - 🔧 **Call Aras methods** (BOM structures, workflows, etc.)
 - 📋 **Access dropdown lists** and configuration data
 
+## 📋 Prerequisites
+
+Before you start, make sure you have:
+
+### 🐍 Python 3.8+
+- **Windows:** Download from [python.org](https://www.python.org/downloads/)
+- **macOS:** Use [Homebrew](https://brew.sh/): `brew install python`
+- **Linux:** Use your package manager: `sudo apt install python3 python3-pip`
+
+### 🤖 Claude Desktop (FREE!)
+- Download Claude Desktop for **FREE** from [claude.ai](https://claude.ai/download)
+- Works with free Claude accounts - no subscription required!
+- Available for Windows, macOS, and Linux
+
+### 🏢 Aras Innovator Access
+- Access to an Aras Innovator instance
+- Valid username and password with API permissions
+- Your server URL and database name
+
 ## 🎯 Quick Start
 
 ### 1️⃣ Clone & Install
 ```bash
-git clone <your-repo-url>
-cd aras-mcp-server
+git clone https://github.com/DaanTheoden/aras-claude-agent.git
+cd aras-claude-agent
 pip install -r requirements.txt
 ```
 
@@ -42,13 +61,23 @@ Edit your Claude Desktop config file:
   "mcpServers": {
     "aras-innovator": {
       "command": "python",
-      "args": ["C:/path/to/your/aras-mcp-server/main.py"]
+      "args": ["C:/path/to/your/aras-claude-agent/main.py"]
     }
   }
 }
 ```
 
-### 4️⃣ Test It Out!
+> 💡 **Replace the path** with your actual installation directory!
+
+### 4️⃣ Test Your Setup!
+
+**Verify installation:**
+```bash
+python main.py
+```
+You should see: `Aras MCP Server running on stdio`
+
+**Test in Claude Desktop:**
 Restart Claude Desktop and try:
 - *"Test my Aras connection"*
 - *"Get all Part items from Aras"*
@@ -79,9 +108,31 @@ Claude: Successfully created aer_dcm_data item with ID 12345...
 
 ## 🔧 Troubleshooting
 
-- **Connection issues?** Check your `.env` file credentials
-- **Permission errors?** Verify your Aras user has API access
-- **Claude not finding tools?** Restart Claude Desktop after config changes
+### Common Issues & Solutions
+
+**🔗 Connection issues?**
+- Check your `.env` file credentials
+- Verify your Aras server URL is accessible
+- Ensure your Aras instance supports OAuth API access
+
+**🔐 Permission errors?**
+- Verify your Aras user has API access permissions
+- Check if your user can access the OData endpoints
+- Contact your Aras administrator if needed
+
+**🤖 Claude not finding tools?**
+- Restart Claude Desktop after config changes
+- Check that the file path in the config is correct
+- Verify Python is installed and accessible from command line
+
+**🐍 Python issues?**
+- Make sure you have Python 3.8 or higher: `python --version`
+- Install missing packages: `pip install -r requirements.txt`
+- Try using `python3` instead of `python` on macOS/Linux
+
+**❓ Still need help?**
+- Check the [Issues](https://github.com/DaanTheoden/aras-claude-agent/issues) on GitHub
+- Visit [www.arasdeveloper.com](https://www.arasdeveloper.com) for Aras guidance
 
 ## 📚 Learn More
 
