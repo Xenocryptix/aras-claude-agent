@@ -201,6 +201,7 @@ async def handle_call_tool(
 async def main():
     # Run the server using stdin/stdout streams
     async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
+        print("Aras MCP Server running on stdio", flush=True)
         await server.run(
             read_stream,
             write_stream,

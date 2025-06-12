@@ -4,7 +4,7 @@
 
 This Model Context Protocol (MCP) server enables Claude Desktop to interact with Aras Innovator, allowing you to query data, create items, and call methods directly from your AI assistant.
 
-## ✨ What Can You Do?
+## ✨ What can you do?
 
 - 🔐 **Test your Aras connection** with secure OAuth authentication
 - 📊 **Query Aras data** using OData API (Parts, Documents, BOMs, etc.)
@@ -14,33 +14,26 @@ This Model Context Protocol (MCP) server enables Claude Desktop to interact with
 
 ## 📋 Prerequisites
 
-Before you start, make sure you have:
-
 ### 🐍 Python 3.8+
 - **Windows:** Download from [python.org](https://www.python.org/downloads/)
-- **macOS:** Use [Homebrew](https://brew.sh/): `brew install python`
-- **Linux:** Use your package manager: `sudo apt install python3 python3-pip`
+- **macOS/Linux:** `brew install python` or `sudo apt install python3 python3-pip`
 
-### 🤖 Claude Desktop (FREE!)
-- Download Claude Desktop for **FREE** from [claude.ai](https://claude.ai/download)
-- Works with free Claude accounts - no subscription required!
-- Available for Windows, macOS, and Linux
+### 🤖 Claude Desktop (free!)
+- Download from [claude.ai](https://claude.ai/download) - no subscription required!
 
-### 🏢 Aras Innovator Access
-- Access to an Aras Innovator instance
-- Valid username and password with API permissions
-- Your server URL and database name
+### 🏢 Aras Innovator access
+- Server URL, database name, username, and password with API permissions
 
-## 🎯 Quick Start
+## 🎯 Quick start
 
-### 1️⃣ Clone & Install
+### 1️⃣ Clone & install
 ```bash
 git clone https://github.com/DaanTheoden/aras-claude-agent.git
 cd aras-claude-agent
 pip install -r requirements.txt
 ```
 
-### 2️⃣ Configure Your Aras Connection
+### 2️⃣ Configure your Aras connection
 Create a `.env` file in the project root:
 ```env
 ARAS_URL=https://your-aras-server.com/InnovatorServer
@@ -69,7 +62,7 @@ Edit your Claude Desktop config file:
 
 > 💡 **Replace the path** with your actual installation directory!
 
-### 4️⃣ Test Your Setup!
+### 4️⃣ Test your setup!
 
 **Verify installation:**
 ```bash
@@ -83,7 +76,7 @@ Restart Claude Desktop and try:
 - *"Get all Part items from Aras"*
 - *"Show me the document types list"*
 
-## 🛠️ Available Tools
+## 🛠️ Available tools
 
 | Tool | Description | What You Can Ask |
 |------|-------------|------------------|
@@ -93,7 +86,7 @@ Restart Claude Desktop and try:
 | **`aras_call_method`** | Call Aras server methods | *"Get BOM structure for item X"* |
 | **`aras_get_list`** | Get dropdown/list values | *"Show document types"* |
 
-## 💬 Example Conversations
+## 💬 Example conversations
 
 ```
 You: "Test my Aras connection"
@@ -108,33 +101,19 @@ Claude: Successfully created aer_dcm_data item with ID 12345...
 
 ## 🔧 Troubleshooting
 
-### Common Issues & Solutions
+### Common issues & solutions
 
-**🔗 Connection issues?**
-- Check your `.env` file credentials
-- Verify your Aras server URL is accessible
-- Ensure your Aras instance supports OAuth API access
+**🔗 Connection issues?** Check your `.env` credentials and Aras server accessibility
 
-**🔐 Permission errors?**
-- Verify your Aras user has API access permissions
-- Check if your user can access the OData endpoints
-- Contact your Aras administrator if needed
+**🔐 Permission errors?** Verify your Aras user has API access permissions
 
-**🤖 Claude not finding tools?**
-- Restart Claude Desktop after config changes
-- Check that the file path in the config is correct
-- Verify Python is installed and accessible from command line
+**🤖 Claude not finding tools?** Restart Claude Desktop and check file paths
 
-**🐍 Python issues?**
-- Make sure you have Python 3.8 or higher: `python --version`
-- Install missing packages: `pip install -r requirements.txt`
-- Try using `python3` instead of `python` on macOS/Linux
+**🐍 Python issues?** Ensure Python 3.8+ is installed: `python --version`
 
-**❓ Still need help?**
-- Check the [Issues](https://github.com/DaanTheoden/aras-claude-agent/issues) on GitHub
-- Visit [www.arasdeveloper.com](https://www.arasdeveloper.com) for Aras guidance
+**❓ Still need help?** Check [GitHub Issues](https://github.com/DaanTheoden/aras-claude-agent/issues) or visit [www.arasdeveloper.com](https://www.arasdeveloper.com)
 
-## 📚 Learn More
+## 📚 Learn more
 
 Want to master Aras development? Visit **[www.arasdeveloper.com](https://www.arasdeveloper.com)** for tutorials, best practices, and expert guidance!
 
