@@ -4,6 +4,8 @@
 
 This Model Context Protocol (MCP) server enables Claude Desktop to interact with Aras Innovator, allowing you to query data, create items, and call methods directly from your AI assistant.
 
+🎥 **[Watch the demo in action on LinkedIn!](https://www.linkedin.com/posts/daan-theoden-254a8b96_plm-arasinnovator-mcp-activity-7337137605119000577-yCdq)** See how the AI agent retrieves PLM data, adds users, and creates BOM structures autonomously.
+
 ## ✨ What can you do?
 
 - 🔐 **Test your Aras connection** with secure OAuth authentication
