@@ -95,11 +95,7 @@ You: "Get all users where name starts with 'John'"
 Claude: Retrieved 15 users matching your criteria...
 
 You: "Create a new document with title 'User Manual v2'"
-<<<<<<< HEAD
 Claude: Successfully created item with ID 12345...
-=======
-Claude: Successfully created Document item with ID 12345...
->>>>>>> c42616bce2e5e41f72dc0fbbc1f1c28b10357a87
 ```
 
 ## 🔧 Troubleshooting
