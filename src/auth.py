@@ -1,41 +1,30 @@
 """
-Authentication module for Aras Innovator OAuth
-Created by D. Theoden (www.arasdeveloper.com)
+Authentication module for API access
+Created by D. Theoden
 Date: June 12, 2025
 """
 
 import requests
-from .config import URL, DATABASE, USERNAME, PASSWORD
+import os
+from dotenv import load_dotenv
+from .config import URL, USERNAME, PASSWORD
+
+# Load environment variables
+load_dotenv()
 
 def get_bearer_token():
-    """Get OAuth bearer token for Aras Innovator authentication."""
+    """Get bearer token for API authentication."""
     try:
-        # Get OAuth discovery URL
-        discovery_url = f"{URL}/Server/OAuthServerDiscovery.aspx"
-        oauth_res = requests.get(discovery_url)
-        oauth_res.raise_for_status()
-        oauth_url = oauth_res.json()["locations"][0]["uri"]
-
-        # Get endpoint configuration
-        endpoint_url = f"{oauth_url}.well-known/openid-configuration"
-        endpoint_res = requests.get(endpoint_url)
-        endpoint_res.raise_for_status()
-        token_url = endpoint_res.json()["token_endpoint"]
-
-        # Request access token
-        token_data = {
-            "grant_type": "password",
-            "scope": "Innovator",
-            "client_id": "IOMApp",
+        # Basic authentication to get token
+        auth_data = {
             "username": USERNAME,
-            "password": PASSWORD,
-            "database": DATABASE
+            "password": PASSWORD
         }
 
         token_res = requests.post(
-            token_url,
-            data=token_data,
-            headers={'Content-Type': 'application/x-www-form-urlencoded'}
+            f"{URL}/auth/token",
+            json=auth_data,
+            headers={'Content-Type': 'application/json'}
         )
         token_res.raise_for_status()
 

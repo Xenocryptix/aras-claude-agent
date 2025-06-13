@@ -13,4 +13,18 @@ ARAS_USERNAME=your-username
 # Your Aras password
 ARAS_PASSWORD=your-password
 
-# 💡 Tip: Keep this file secure and never commit it to version control! 
+# 💡 Tip: Keep this file secure and never commit it to version control!
+
+# API Server Configuration
+API_URL=https://your-api-server.com
+API_USERNAME=your-username
+API_PASSWORD=your-password
+
+# Optional Configuration
+API_TIMEOUT=30  # Request timeout in seconds
+API_RETRY_COUNT=3  # Number of retries for failed requests
+API_RETRY_DELAY=1  # Delay between retries in seconds
+
+# Logging Configuration
+LOG_LEVEL=INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+LOG_FILE=api_client.log  # Log file path 

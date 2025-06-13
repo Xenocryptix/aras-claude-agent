@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Aras Innovator MCP Server
-A Model Context Protocol server for integrating Aras Innovator with Claude Desktop.
+Generic API MCP Server
+A Model Context Protocol server for integrating any REST API with Claude Desktop.
 
-Created by D. Theoden (www.arasdeveloper.com)
+Created by D. Theoden
 Date: June 12, 2025
 
 Learn more about Aras development at: https://www.arasdeveloper.com

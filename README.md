@@ -1,18 +1,16 @@
-# 🚀 Aras Innovator MCP Server
+# 🚀 Generic API MCP Server
 
-> **Connect Claude Desktop to your Aras Innovator instance!**
+> **Connect Claude Desktop to any REST API!**
 
-This Model Context Protocol (MCP) server enables Claude Desktop to interact with Aras Innovator, allowing you to query data, create items, and call methods directly from your AI assistant.
-
-🎥 **[Watch the demo in action on LinkedIn!](https://www.linkedin.com/posts/daan-theoden-254a8b96_plm-arasinnovator-mcp-activity-7337137605119000577-yCdq)** See how the AI agent retrieves PLM data, adds users, and creates BOM structures autonomously.
+This Model Context Protocol (MCP) server enables Claude Desktop to interact with any REST API, allowing you to query data, create items, and call methods directly from your AI assistant.
 
 ## ✨ What can you do?
 
-- 🔐 **Test your Aras connection** with secure OAuth authentication
-- 📊 **Query Aras data** using OData API (Parts, Documents, BOMs, etc.)
+- 🔐 **Test your API connection** with secure authentication
+- 📊 **Query API data** using REST endpoints
 - ✍️ **Create new items** directly from Claude
-- 🔧 **Call Aras methods** (BOM structures, workflows, etc.)
-- 📋 **Access dropdown lists** and configuration data
+- 🔧 **Call API methods** and custom endpoints
+- 📋 **Access lists** and configuration data
 
 ## 📋 Prerequisites
 
@@ -23,25 +21,24 @@ This Model Context Protocol (MCP) server enables Claude Desktop to interact with
 ### 🤖 Claude Desktop (free!)
 - Download from [claude.ai](https://claude.ai/download) - no subscription required!
 
-### 🏢 Aras Innovator access
-- Server URL, database name, username, and password with API permissions
+### 🏢 API access
+- Server URL and authentication credentials with API permissions
 
 ## 🎯 Quick start
 
 ### 1️⃣ Clone & install
 ```bash
-git clone https://github.com/DaanTheoden/aras-claude-agent.git
-cd aras-claude-agent
+git clone https://github.com/yourusername/api-mcp-server.git
+cd api-mcp-server
 pip install -r requirements.txt
 ```
 
-### 2️⃣ Configure your Aras connection
+### 2️⃣ Configure your API connection
 Create a `.env` file in the project root:
 ```env
-ARAS_URL=https://your-aras-server.com/InnovatorServer
-ARAS_DATABASE=YourDatabase
-ARAS_USERNAME=your-username
-ARAS_PASSWORD=your-password
+API_URL=https://your-api-server.com
+API_USERNAME=your-username
+API_PASSWORD=your-password
 ```
 > 💡 Copy from `env_example.txt` and update with your credentials
 
@@ -54,9 +51,9 @@ Edit your Claude Desktop config file:
 ```json
 {
   "mcpServers": {
-    "aras-innovator": {
+    "api-server": {
       "command": "python",
-      "args": ["C:/path/to/your/aras-claude-agent/main.py"]
+      "args": ["C:/path/to/your/api-mcp-server/main.py"]
     }
   }
 }
@@ -70,54 +67,48 @@ Edit your Claude Desktop config file:
 ```bash
 python main.py
 ```
-You should see: `Aras MCP Server running on stdio`
+You should see: `API MCP Server running on stdio`
 
 **Test in Claude Desktop:**
 Restart Claude Desktop and try:
-- *"Test my Aras connection"*
-- *"Get all Part items from Aras"*
-- *"Show me the document types list"*
+- *"Test my API connection"*
+- *"Get all items from endpoint /users"*
+- *"Show me the available lists"*
 
 ## 🛠️ Available tools
 
 | Tool | Description | What You Can Ask |
 |------|-------------|------------------|
-| **`test_aras_connection`** | Test authentication & connection | *"Test my Aras connection"* |
-| **`aras_get_item`** | Query Aras data using OData | *"Get all Part items"* |
-| **`aras_create_item`** | Create new items | *"Create a new Part with number P001"* |
-| **`aras_call_method`** | Call Aras server methods | *"Get BOM structure for item X"* |
-| **`aras_get_list`** | Get dropdown/list values | *"Show document types"* |
+| **`test_api_connection`** | Test authentication & connection | *"Test my API connection"* |
+| **`api_get_items`** | Query API data | *"Get all users"* |
+| **`api_create_item`** | Create new items | *"Create a new user"* |
+| **`api_call_method`** | Call API methods | *"Call the search endpoint"* |
+| **`api_get_list`** | Get list values | *"Show available options"* |
 
 ## 💬 Example conversations
 
 ```
-You: "Test my Aras connection"
-Claude: ✅ Successfully authenticated with Aras Innovator!
+You: "Test my API connection"
+Claude: ✅ Successfully authenticated with API!
 
-You: "Get all Part items where item_number starts with 'P001'"
-Claude: Retrieved 15 Part items matching your criteria...
+You: "Get all users where name starts with 'John'"
+Claude: Retrieved 15 users matching your criteria...
 
 You: "Create a new document with title 'User Manual v2'"
-Claude: Successfully created aer_dcm_data item with ID 12345...
+Claude: Successfully created item with ID 12345...
 ```
 
 ## 🔧 Troubleshooting
 
 ### Common issues & solutions
 
-**🔗 Connection issues?** Check your `.env` credentials and Aras server accessibility
+**🔗 Connection issues?** Check your `.env` credentials and API server accessibility
 
-**🔐 Permission errors?** Verify your Aras user has API access permissions
+**🔐 Permission errors?** Verify your API user has proper access permissions
 
 **🤖 Claude not finding tools?** Restart Claude Desktop and check file paths
 
 **🐍 Python issues?** Ensure Python 3.8+ is installed: `python --version`
-
-**❓ Still need help?** Check [GitHub Issues](https://github.com/DaanTheoden/aras-claude-agent/issues) or visit [www.arasdeveloper.com](https://www.arasdeveloper.com)
-
-## 📚 Learn more
-
-Want to master Aras development? Visit **[www.arasdeveloper.com](https://www.arasdeveloper.com)** for tutorials, best practices, and expert guidance!
 
 ## 🤝 Contributing
 

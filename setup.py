@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="aras-mcp-server",
+    name="api-mcp-server",
     version="1.0.0",
-    description="MCP Server for Aras Innovator integration with Claude Desktop",
+    description="MCP Server for generic API integration with Claude Desktop",
     author="D. Theoden",
-    author_email="hello@arasdeveloper.com",
-    url="https://www.arasdeveloper.com",
+    author_email="your.email@example.com",
+    url="https://github.com/yourusername/api-mcp-server",
     packages=find_packages(),
     install_requires=[
         "mcp>=1.0.0",
@@ -17,7 +17,7 @@ setup(
     python_requires=">=3.8",
     entry_points={
         "console_scripts": [
-            "aras-mcp-server=main:main",
+            "api-mcp-server=main:main",
         ],
     },
     classifiers=[
