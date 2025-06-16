@@ -28,8 +28,8 @@ This Model Context Protocol (MCP) server enables Claude Desktop to interact with
 
 ### 1️⃣ Clone & install
 ```bash
-git clone https://github.com/yourusername/api-mcp-server.git
-cd api-mcp-server
+git clone https://github.com/DaanTheoden/aras-claude-agent.git
+cd aras-claude-agent
 pip install -r requirements.txt
 ```
 
@@ -53,7 +53,7 @@ Edit your Claude Desktop config file:
   "mcpServers": {
     "api-server": {
       "command": "python",
-      "args": ["C:/path/to/your/api-mcp-server/main.py"]
+      "args": ["C:/path/to/your/aras-claude-agent/main.py"]
     }
   }
 }
