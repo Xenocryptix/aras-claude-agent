@@ -1,30 +1,29 @@
-# 🔐 Aras Innovator Configuration
+# 🔐 Aras Innovator OAuth 2.0 Configuration
 # Copy this file to .env and update with your actual credentials
 
-# Your Aras Innovator server URL (include /InnovatorServer)
-ARAS_URL=https://your-aras-server.com/InnovatorServer
+# Your Aras Innovator server URL (format: https://your-server.com/YourDatabase)
+API_URL=https://your-aras-server.com/YourDatabase
 
-# Database name in Aras
-ARAS_DATABASE=InnovatorSolutions
+# Your Aras username and password
+API_USERNAME=your-aras-username
+API_PASSWORD=your-aras-password
 
-# Your Aras username
-ARAS_USERNAME=your-username
-
-# Your Aras password
-ARAS_PASSWORD=your-password
+# Database name in Aras Innovator (required for OAuth 2.0)
+ARAS_DATABASE=YourDatabase
 
 # 💡 Tip: Keep this file secure and never commit it to version control!
 
-# API Server Configuration
-API_URL=https://your-api-server.com
-API_USERNAME=your-username
-API_PASSWORD=your-password
-
-# Optional Configuration
+# Optional Configuration (with defaults)
 API_TIMEOUT=30  # Request timeout in seconds
 API_RETRY_COUNT=3  # Number of retries for failed requests
 API_RETRY_DELAY=1  # Delay between retries in seconds
 
 # Logging Configuration
 LOG_LEVEL=INFO  # DEBUG, INFO, WARNING, ERROR, CRITICAL
-LOG_FILE=api_client.log  # Log file path 
+LOG_FILE=api_client.log  # Log file path
+
+# 📝 Notes:
+# - API_URL should be your Aras server base URL including the database path
+# - ARAS_DATABASE must match the database name in your API_URL
+# - Ensure your user has API access permissions in Aras
+# - For Aras Innovator 14+, OAuth 2.0 endpoints are automatically configured 

@@ -1,16 +1,17 @@
-# 🚀 Generic API MCP Server
+# 🚀 Aras Innovator Claude Agent
 
-> **Connect Claude Desktop to any REST API!**
+> **Connect Claude Desktop to Aras Innovator PLM via OAuth 2.0!**
 
-This Model Context Protocol (MCP) server enables Claude Desktop to interact with any REST API, allowing you to query data, create items, and call methods directly from your AI assistant.
+This Model Context Protocol (MCP) server enables Claude Desktop to interact with Aras Innovator using modern OAuth 2.0 authentication and OData REST APIs, allowing you to query PLM data, create items, and call methods directly from your AI assistant.
 
 ## ✨ What can you do?
 
-- 🔐 **Test your API connection** with secure authentication
-- 📊 **Query API data** using REST endpoints
-- ✍️ **Create new items** directly from Claude
-- 🔧 **Call API methods** and custom endpoints
+- 🔐 **Secure OAuth 2.0 authentication** with Aras Innovator 14+
+- 📊 **Query PLM data** using OData REST endpoints  
+- ✍️ **Create new items** (Parts, Documents, etc.) directly from Claude
+- 🔧 **Call Aras server methods** and custom endpoints
 - 📋 **Access lists** and configuration data
+- 🛡️ **Enterprise-grade security** with bearer token authentication
 
 ## 📋 Prerequisites
 
@@ -21,8 +22,10 @@ This Model Context Protocol (MCP) server enables Claude Desktop to interact with
 ### 🤖 Claude Desktop (free!)
 - Download from [claude.ai](https://claude.ai/download) - no subscription required!
 
-### 🏢 API access
-- Server URL and authentication credentials with API permissions
+### 🏢 Aras Innovator 14+ with OAuth 2.0
+- Aras Innovator server with OAuth 2.0 endpoints enabled
+- Valid Aras user credentials with API permissions
+- Database access permissions
 
 ## 🎯 Quick start
 
@@ -33,14 +36,22 @@ cd aras-claude-agent
 pip install -r requirements.txt
 ```
 
-### 2️⃣ Configure your API connection
+### 2️⃣ Configure your Aras connection
 Create a `.env` file in the project root:
 ```env
-API_URL=https://your-api-server.com
-API_USERNAME=your-username
-API_PASSWORD=your-password
+# Aras Innovator OAuth 2.0 Configuration
+API_URL=https://your-aras-server.com/YourDatabase
+API_USERNAME=your-aras-username
+API_PASSWORD=your-aras-password
+ARAS_DATABASE=YourDatabase
+
+# Optional Configuration
+API_TIMEOUT=30
+API_RETRY_COUNT=3
+API_RETRY_DELAY=1
+LOG_LEVEL=INFO
 ```
-> 💡 Copy from `env_example.txt` and update with your credentials
+> 💡 Copy from `env_example.txt` and update with your Aras credentials
 
 ### 3️⃣ Add to Claude Desktop
 Edit your Claude Desktop config file:
@@ -52,7 +63,7 @@ Edit your Claude Desktop config file:
 {
   "mcpServers": {
     "api-server": {
-      "command": "python",
+      "command": "py",
       "args": ["C:/path/to/your/aras-claude-agent/main.py"]
     }
   }
@@ -67,52 +78,97 @@ Edit your Claude Desktop config file:
 ```bash
 python main.py
 ```
-You should see: `API MCP Server running on stdio`
+The server should start without any JSON parsing errors.
 
 **Test in Claude Desktop:**
 Restart Claude Desktop and try:
 - *"Test my API connection"*
-- *"Get all items from endpoint /users"*
-- *"Show me the available lists"*
+- *"Get all Parts from the database"*
+- *"Show me the available Document types"*
 
 ## 🛠️ Available tools
 
-| Tool | Description | What You Can Ask |
-|------|-------------|------------------|
-| **`test_api_connection`** | Test authentication & connection | *"Test my API connection"* |
-| **`api_get_items`** | Query API data | *"Get all users"* |
-| **`api_create_item`** | Create new items | *"Create a new user"* |
-| **`api_call_method`** | Call API methods | *"Call the search endpoint"* |
-| **`api_get_list`** | Get list values | *"Show available options"* |
+| Tool | Description | What You Can Ask | Example Endpoint |
+|------|-------------|------------------|------------------|
+| **`test_api_connection`** | Test OAuth 2.0 authentication | *"Test my API connection"* | N/A |
+| **`api_get_items`** | Query Aras OData | *"Get all Parts"* | `Part`, `Document` |
+| **`api_create_item`** | Create new Aras items | *"Create a new Part"* | `Part`, `Document` |
+| **`api_call_method`** | Call Aras server methods | *"Call method GetItemsInBOM"* | Method names |
+| **`api_get_list`** | Get Aras list values | *"Show Part categories"* | List IDs |
+
+## 🔐 OAuth 2.0 Authentication
+
+This agent uses **OAuth 2.0 Resource Owner Password Credentials Grant** for secure authentication with Aras Innovator 14+. The authentication flow:
+
+1. **Token Request**: `https://your-server/oauthserver/connect/token`
+2. **Scope**: `openid Innovator offline_access`  
+3. **Client ID**: `IOMApp` (default Aras client)
+4. **Grant Type**: `password`
+5. **Required**: `username`, `password`, `database`
 
 ## 💬 Example conversations
 
 ```
 You: "Test my API connection"
 Claude: ✅ Successfully authenticated with API!
+Bearer token obtained and ready for API calls.
+Server URL: https://your-server.com/YourDatabase
 
-You: "Get all users where name starts with 'John'"
-Claude: Retrieved 15 users matching your criteria...
+You: "Get all Parts where item_number starts with 'P-'"
+Claude: Retrieved 25 Parts matching your criteria...
 
-You: "Create a new document with title 'User Manual v2'"
-Claude: Successfully created item with ID 12345...
+You: "Create a new Document with name 'User Manual v2'"
+Claude: Successfully created Document with ID A1B2C3D4...
 ```
 
-## 🔧 Troubleshooting
+## 🔧 Recent Fixes & Updates
 
-### Common issues & solutions
+### ✅ v1.1.0 - OAuth 2.0 & JSON Parsing Fixes
+- **Fixed**: "Unexpected token 'A', 'API MCP Se'... is not valid JSON" error
+- **Added**: Proper OAuth 2.0 authentication with `requests-oauthlib`
+- **Added**: Database parameter requirement for Aras authentication
+- **Fixed**: All print statements redirected to stderr to prevent stdout contamination
+- **Updated**: OData endpoint support (`/Server/Odata`)
+- **Added**: Proper HTTP headers for Aras REST API
 
-**🔗 Connection issues?** Check your `.env` credentials and API server accessibility
+### 🛠️ Troubleshooting
 
-**🔐 Permission errors?** Verify your API user has proper access permissions
+**🔗 OAuth authentication failing?**
+- Verify your Aras server supports OAuth 2.0 (Aras 14+)
+- Check credentials and database name in `.env`
+- Ensure user has API access permissions
 
-**🤖 Claude not finding tools?** Restart Claude Desktop and check file paths
+**🔐 "Missing database parameter" error?**
+- Add `ARAS_DATABASE=YourDatabaseName` to your `.env` file
 
-**🐍 Python issues?** Ensure Python 3.8+ is installed: `python --version`
+**🤖 Claude not finding tools?**
+- Restart Claude Desktop after config changes
+- Check file paths in `claude_desktop_config.json`
+
+**🐍 JSON parsing errors?**
+- ✅ Fixed in v1.1.0! Update to latest version
+
+## 🏗️ Architecture
+
+```
+Claude Desktop
+    ↓ JSON-RPC
+MCP Server (stdio)
+    ↓ OAuth 2.0
+Aras Innovator
+    ↓ OData REST API
+PLM Database
+```
 
 ## 🤝 Contributing
 
 Found a bug or want to add features? We welcome contributions! Please check our issues or submit a pull request.
+
+## 📚 Learn More
+
+- [Aras Developer Documentation](https://www.arasdeveloper.com)
+- [Model Context Protocol](https://modelcontextprotocol.io)
+- [Aras OAuth 2.0 Guide](https://community.aras.com)
 
 ## 📄 License
 

@@ -13,6 +13,7 @@ class APIClient:
     def __init__(self):
         self.token = None
         self.url = URL
+        self.odata_url = f"{URL}/Server/Odata"  # Aras OData endpoint
 
     def authenticate(self):
         """Authenticate with the API and store the token."""
@@ -20,25 +21,26 @@ class APIClient:
             self.token = get_bearer_token()
             return True
         except Exception as error:
-            print(f"Authentication error: {error}")
+            import sys
+            print(f"Authentication error: {error}", file=sys.stderr)
             return False
 
     def get_items(self, endpoint, expand=None, filter_param=None, select=None):
-        """Get items from API using REST."""
+        """Get items from Aras OData API."""
         try:
             if not self.token:
                 self.authenticate()
 
-            # Build URL
-            api_url = f"{URL}/{endpoint}"
+            # Build OData URL - endpoint should be an ItemType like 'Part', 'Document', etc.
+            api_url = f"{self.odata_url}/{endpoint}"
             params = []
             
             if expand:
-                params.append(f"expand={expand}")
+                params.append(f"$expand={expand}")
             if filter_param:
-                params.append(f"filter={filter_param}")
+                params.append(f"$filter={filter_param}")
             if select:
-                params.append(f"select={select}")
+                params.append(f"$select={select}")
             
             if params:
                 api_url += "?" + "&".join(params)
@@ -46,7 +48,7 @@ class APIClient:
             response = requests.get(
                 api_url,
                 headers={
-                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'Authorization': f'Bearer {self.token}'
                 }
             )
@@ -54,20 +56,22 @@ class APIClient:
 
             return response.json()
         except Exception as error:
-            print(f"Error getting items: {error}")
+            import sys
+            print(f"Error getting items: {error}", file=sys.stderr)
             raise error
 
     def create_item(self, endpoint, data):
-        """Create a new item using REST API."""
+        """Create a new item using Aras OData API."""
         try:
             if not self.token:
                 self.authenticate()
 
             response = requests.post(
-                f"{URL}/{endpoint}",
+                f"{self.odata_url}/{endpoint}",
                 json=data,
                 headers={
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'Authorization': f'Bearer {self.token}'
                 }
             )
@@ -75,20 +79,23 @@ class APIClient:
 
             return response.json()
         except Exception as error:
-            print(f"Error creating item: {error}")
+            import sys
+            print(f"Error creating item: {error}", file=sys.stderr)
             raise error
 
     def call_method(self, method_name, data):
-        """Call a server method using REST API."""
+        """Call an Aras server method."""
         try:
             if not self.token:
                 self.authenticate()
 
+            # Aras methods are typically called via OData actions
             response = requests.post(
-                f"{URL}/methods/{method_name}",
+                f"{self.odata_url}/Method('{method_name}')",
                 json=data,
                 headers={
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'Authorization': f'Bearer {self.token}'
                 }
             )
@@ -96,24 +103,25 @@ class APIClient:
 
             return response.json()
         except Exception as error:
-            print(f"Error calling method {method_name}: {error}")
+            import sys
+            print(f"Error calling method {method_name}: {error}", file=sys.stderr)
             raise error
 
     def get_list(self, list_id, expand=None):
-        """Get list data from API."""
+        """Get list data from Aras API."""
         try:
             if not self.token:
                 self.authenticate()
 
-            # Build URL for List endpoint
-            list_url = f"{URL}/lists/{list_id}"
+            # Aras lists are accessed via List ItemType
+            list_url = f"{self.odata_url}/List('{list_id}')"
             if expand:
-                list_url += f"?expand={expand}"
+                list_url += f"?$expand={expand}"
 
             response = requests.get(
                 list_url,
                 headers={
-                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'Authorization': f'Bearer {self.token}'
                 }
             )
@@ -121,5 +129,6 @@ class APIClient:
 
             return response.json()
         except Exception as error:
-            print(f"Error getting list {list_id}: {error}")
+            import sys
+            print(f"Error getting list {list_id}: {error}", file=sys.stderr)
             raise error 
