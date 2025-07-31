@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 
 # Default values
 DEFAULT_ENV_FILE=".env"
-DEFAULT_COMPOSE_FILE="docker-compose.yml"
+DEFAULT_COMPOSE_FILE="docker compose.yml"
 
 # Function to print colored output
 print_info() {
@@ -57,7 +57,7 @@ start_services() {
     check_docker
     
     if check_env; then
-        docker-compose up -d aras-mcp-server
+        docker compose up -d aras-mcp-server
         print_info "Server started successfully!"
         print_info "SSE endpoint available at: http://localhost:8080/sse"
     else
@@ -72,7 +72,7 @@ start_with_nginx() {
     check_docker
     
     if check_env; then
-        docker-compose --profile nginx up -d
+        docker compose --profile nginx up -d
         print_info "Server and Nginx started successfully!"
         print_info "Server available at: http://localhost/"
         print_info "Direct SSE endpoint: http://localhost:8080/sse"
@@ -85,7 +85,7 @@ start_with_nginx() {
 # Function to stop the services
 stop_services() {
     print_info "Stopping Aras MCP Server..."
-    docker-compose down
+    docker compose down
     print_info "Services stopped successfully!"
 }
 
@@ -99,13 +99,13 @@ restart_services() {
 # Function to show logs
 show_logs() {
     print_info "Showing logs (Press Ctrl+C to exit)..."
-    docker-compose logs -f aras-mcp-server
+    docker compose logs -f aras-mcp-server
 }
 
 # Function to show status
 show_status() {
     print_info "Service Status:"
-    docker-compose ps
+    docker compose ps
     
     print_info "\nTesting server health..."
     if curl -s -f http://localhost:8080/sse >/dev/null 2>&1; then
@@ -125,7 +125,7 @@ run_client() {
 # Function to build the image
 build_image() {
     print_info "Building Aras MCP Server Docker image..."
-    docker-compose build aras-mcp-server
+    docker compose build aras-mcp-server
     print_info "Image built successfully!"
 }
 

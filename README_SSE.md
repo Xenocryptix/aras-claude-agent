@@ -49,7 +49,7 @@ scripts\manage.bat start
 Or manually:
 
 ```bash
-docker-compose up -d aras-mcp-server
+docker compose up -d aras-mcp-server
 ```
 
 ### 3. Test the Server
@@ -209,7 +209,7 @@ Reverse proxy with SSL termination and rate limiting.
 
 ```bash
 # Start with reverse proxy
-docker-compose --profile nginx up -d
+docker compose --profile nginx up -d
 
 # Or using management script
 ./scripts/manage.sh start-nginx
@@ -329,7 +329,7 @@ python -m src.sse_client http://localhost:8080/sse
 curl -f http://localhost:8080/sse
 
 # Check Docker logs
-docker-compose logs aras-mcp-server
+docker compose logs aras-mcp-server
 ```
 
 #### 2. Authentication Failures
@@ -346,7 +346,7 @@ docker-compose logs aras-mcp-server
 #### Server Logs
 ```bash
 # Follow logs
-docker-compose logs -f aras-mcp-server
+docker compose logs -f aras-mcp-server
 
 # Or using management script
 ./scripts/manage.sh logs
@@ -381,7 +381,7 @@ python -m src.sse_client http://localhost:8080/sse
 ### Network Configuration
 
 ```yaml
-# docker-compose.override.yml for production
+# docker compose.override.yml for production
 version: '3.8'
 services:
   aras-mcp-server:

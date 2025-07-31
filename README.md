@@ -190,7 +190,7 @@ For server-based deployments with n8n integration:
 
 ```bash
 # Quick start with Docker
-docker-compose up -d aras-mcp-server
+docker compose up -d aras-mcp-server
 
 # Access SSE endpoint
 curl http://localhost:8080/sse
