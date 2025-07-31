@@ -4,6 +4,16 @@
 
 This Model Context Protocol (MCP) server enables Claude Desktop to interact with Aras Innovator using modern OAuth 2.0 authentication and OData REST APIs, allowing you to query PLM data, create items, and call methods directly from your AI assistant.
 
+## 🌟 Two Deployment Options
+
+### 📱 STDIO Mode (Claude Desktop)
+Perfect for direct Claude Desktop integration with minimal setup.
+
+### 🌐 SSE Mode (Server-based)
+Ideal for n8n workflows, Docker deployments, and multi-client scenarios.
+
+**→ [See SSE Implementation Guide](README_SSE.md)** for server-based deployment.
+
 ## ✨ What can you do?
 
 - 🔐 **Secure OAuth 2.0 authentication** with Aras Innovator 14+
@@ -12,6 +22,8 @@ This Model Context Protocol (MCP) server enables Claude Desktop to interact with
 - 🔧 **Call Aras server methods** and custom endpoints
 - 📋 **Access lists** and configuration data
 - 🛡️ **Enterprise-grade security** with bearer token authentication
+- 🐳 **Docker ready** for production deployments
+- 🔄 **n8n integration** via SSE endpoints
 
 ## 📋 Prerequisites
 
@@ -150,15 +162,41 @@ Claude: Successfully created Document with ID A1B2C3D4...
 
 ## 🏗️ Architecture
 
+### STDIO Mode (Claude Desktop)
 ```
 Claude Desktop
-    ↓ JSON-RPC
-MCP Server (stdio)
+    ↓ JSON-RPC (stdio)
+MCP Server (subprocess)
     ↓ OAuth 2.0
 Aras Innovator
     ↓ OData REST API
 PLM Database
 ```
+
+### SSE Mode (Server-based)
+```
+n8n / External Clients
+    ↓ HTTP/SSE
+MCP Server (Docker)
+    ↓ OAuth 2.0
+Aras Innovator
+    ↓ OData REST API
+PLM Database
+```
+
+## 🐳 Docker Deployment
+
+For server-based deployments with n8n integration:
+
+```bash
+# Quick start with Docker
+docker-compose up -d aras-mcp-server
+
+# Access SSE endpoint
+curl http://localhost:8080/sse
+```
+
+**→ [Complete SSE Setup Guide](README_SSE.md)**
 
 ## 🤝 Contributing
 
