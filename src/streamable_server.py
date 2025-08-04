@@ -13,6 +13,7 @@ Learn more about Aras development at: https://www.arasdeveloper.com
 import argparse
 import asyncio
 import json
+import os
 from typing import Any, Dict, Optional
 from contextlib import asynccontextmanager
 
@@ -262,9 +263,11 @@ def create_app() -> FastAPI:
 def main():
     """Main entry point for the server."""
     parser = argparse.ArgumentParser(description="Run Aras MCP Streamable HTTP Server")
-    parser.add_argument("--port", type=int, default=8123, help="Localhost port to listen on")
-    parser.add_argument("--host", type=str, default="localhost", help="Host to bind to")
+    parser.add_argument("--port", type=int, default=int(os.getenv("PORT", 8123)), help="Localhost port to listen on")
+    parser.add_argument("--host", type=str, default=os.getenv("HOST", "localhost"), help="Host to bind to")
     parser.add_argument("--reload", action="store_true", help="Enable auto-reload for development")
+    parser.add_argument("--log-level", type=str, default=os.getenv("LOG_LEVEL", "info"), 
+                       choices=["debug", "info", "warning", "error"], help="Log level")
     args = parser.parse_args()
 
     # Create the FastAPI app
@@ -281,7 +284,7 @@ def main():
         host=args.host,
         port=args.port,
         reload=args.reload,
-        log_level="info"
+        log_level=args.log_level.lower()
     )
 
 if __name__ == "__main__":

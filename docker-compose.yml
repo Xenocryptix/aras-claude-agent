@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  aras-mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aras-mcp-server
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+    environment:
+      # Aras Server Configuration
+      - ARAS_URL=${ARAS_URL:-http://your-aras-server/Server}
+      - ARAS_USERNAME=${ARAS_USERNAME:-admin}
+      - ARAS_PASSWORD=${ARAS_PASSWORD:-your_password}
+      - ARAS_DATABASE=${ARAS_DATABASE:-InnovatorSolutions}
+      
+      # Optional: Anthropic API for AI features
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      
+      # Server Configuration
+      - HOST=0.0.0.0
+      - PORT=8123
+      - LOG_LEVEL=info
+    
+    # Mount configuration file if needed
+    volumes:
+      - ./docker-config/.env:/app/.env:ro
+      - ./logs:/app/logs
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8123/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    
+    # Network configuration
+    networks:
+      - aras-network
+
+  # Optional: Reverse proxy with nginx
+  nginx:
+    image: nginx:alpine
+    container_name: aras-mcp-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker-config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker-config/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - aras-mcp-server
+    networks:
+      - aras-network
+    profiles:
+      - nginx  # Optional service, enable with --profile nginx
+
+networks:
+  mcp-network:
+    external: true
+  aras-network:
+    driver: bridge
+
+volumes:
+  logs:
+    driver: local

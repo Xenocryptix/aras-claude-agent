@@ -1,0 +1,51 @@
+# Production Dockerfile for Aras MCP Streamable HTTP Server
+# Multi-stage build for smaller final image
+FROM python:3.11 as builder
+
+# Copy and install Python dependencies
+COPY requirements.txt .
+RUN pip install --user --no-cache-dir -r requirements.txt
+
+# Production stage
+FROM python:3.11
+
+# Copy Python packages from builder stage
+COPY --from=builder /root/.local /root/.local
+
+# Make sure scripts in .local are usable
+ENV PATH=/root/.local/bin:$PATH
+
+# Set working directory
+WORKDIR /app
+
+# Copy application source code
+COPY src/ ./src/
+COPY streamable_server.py .
+COPY streamable_client.py .
+COPY example_usage.py .
+COPY healthcheck.py .
+
+# Copy essential documentation
+COPY README.md .
+COPY STREAMABLE_README.md .
+COPY LICENSE .
+
+# Create non-root user for security
+RUN useradd --create-home --shell /bin/bash --uid 1000 aras && \
+    chown -R aras:aras /app
+
+# Switch to non-root user
+USER aras
+
+# Create logs directory
+RUN mkdir -p /app/logs
+
+# Expose the default port
+EXPOSE 8123
+
+# Health check using Python script
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD python healthcheck.py || exit 1
+
+# Use production-optimized command
+CMD ["python", "-u", "streamable_server.py", "--host", "0.0.0.0", "--port", "8123"]

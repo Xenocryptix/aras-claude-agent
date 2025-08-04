@@ -1,0 +1,122 @@
+# Docker ignore file for Aras MCP Server
+# This file specifies which files and directories should be excluded from the Docker build context
+
+# Git files
+.git/
+.gitignore
+
+# Python cache and build files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment files (will be mounted separately)
+.env
+*.env
+!docker-config/env.example
+
+# Logs
+logs/
+*.log
+
+# Docker files (not needed in container)
+Dockerfile
+docker-compose.yml
+.dockerignore
+deploy.sh
+
+# Documentation (copied separately if needed)
+*.md
+!README.md
+!STREAMABLE_README.md
+
+# Test files
+test_*.py
+*_test.py
+tests/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# SSL certificates (mount separately if needed)
+*.pem
+*.key
+*.crt
+*.cert
+
+# Backup files
+*.bak
+*.backup
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
