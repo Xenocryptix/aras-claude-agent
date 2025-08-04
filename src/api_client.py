@@ -107,6 +107,37 @@ class APIClient:
             print(f"Error calling method {method_name}: {error}", file=sys.stderr)
             raise error
 
+    def create_relationship(self, source_item_id, target_item_id, relationship_type, additional_properties=None):
+        """Create a relationship between two existing items in Aras Innovator."""
+        try:
+            if not self.token:
+                self.authenticate()
+
+            # Prepare relationship data
+            relationship_data = {
+                "source_id": source_item_id,
+                "related_id": target_item_id,
+                **additional_properties if additional_properties else {}
+            }
+
+            # Create relationship using OData endpoint
+            response = requests.post(
+                f"{self.odata_url}/{relationship_type}",
+                json=relationship_data,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': f'Bearer {self.token}'
+                }
+            )
+            response.raise_for_status()
+
+            return response.json()
+        except Exception as error:
+            import sys
+            print(f"Error creating relationship: {error}", file=sys.stderr)
+            raise error
+
     def get_list(self, list_id, expand=None):
         """Get list data from Aras API."""
         try:

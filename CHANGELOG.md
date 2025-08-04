@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2025-08-01
+
+### ✨ Added
+- **NEW TOOL**: `api_create_relationship` - Create relationships between two existing items in Aras Innovator
+- Support for common relationship types like 'Part BOM', 'Document File', 'Part Document'
+- Optional additional properties for relationships (quantity, sort_order, etc.)
+- Comprehensive documentation and examples for relationship creation
+- Enhanced API client with dedicated `create_relationship()` method
+
+### 🔧 Enhanced
+- Updated both SSE and STDIO server implementations with relationship support
+- Added relationship tool to available tools list in both deployment modes
+- Updated README documentation with relationship examples
+- Enhanced error handling for relationship creation
+
+### 📚 Documentation
+- Added relationship tool documentation to README.md and README_SSE.md
+- Updated tool comparison table with new relationship functionality
+- Added example conversations showing relationship creation
+
 ## [1.1.0] - 2025-06-17
 
 ### 🔧 Fixed

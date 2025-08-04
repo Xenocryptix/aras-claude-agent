@@ -1,6 +1,19 @@
 # Aras MCP Server - SSE Implementation
 
-This document provides setup and usage instructions for the SSE (Server-Sent Events) based MCP (Model Context Protocol) server for Aras Innovator integration.
+This document provides setup and usage instructions for the SSE (Server-### 5. api_call_metho### 7. api_upload_file
+Upload a file to Aras Innovator database.
+
+**Parameters**:
+- `file_path` (required): Absolute path to file
+- `filename` (optional): Custom filename
+
+### 8. api_create_document_with_fileras Innovator server methods.
+
+**Parameters**:
+- `method_name` (required): Method name to call
+- `data` (required): Method parameters as JSON object
+
+### 6. api_get_listnts) based MCP (Model Context Protocol) server for Aras Innovator integration.
 
 ## Overview
 
@@ -101,21 +114,30 @@ Create new items in Aras Innovator.
 - `endpoint` (required): ItemType name
 - `data` (required): Item data as JSON object
 
-### 4. api_call_method
+### 4. api_create_relationship
+Create relationships between two existing items in Aras Innovator.
+
+**Parameters**:
+- `source_item_id` (required): ID of the source item
+- `target_item_id` (required): ID of the target item  
+- `relationship_type` (required): Relationship type name (e.g., 'Part BOM', 'Document File')
+- `additional_properties` (optional): Additional relationship properties
+
+### 5. api_call_method
 Call Aras Innovator server methods.
 
 **Parameters**:
 - `method_name` (required): Method name to call
 - `data` (required): Method parameters as JSON object
 
-### 5. api_get_list
+### 6. api_get_list
 Get list data from Aras Innovator.
 
 **Parameters**:
 - `list_id` (required): List ID to retrieve
 - `expand` (optional): Expand parameter for list values
 
-### 6. api_upload_file
+### 7. api_upload_file
 Upload a file to Aras Innovator database.
 
 **Parameters**:

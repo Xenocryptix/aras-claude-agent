@@ -105,6 +105,7 @@ Restart Claude Desktop and try:
 | **`test_api_connection`** | Test OAuth 2.0 authentication | *"Test my API connection"* | N/A |
 | **`api_get_items`** | Query Aras OData | *"Get all Parts"* | `Part`, `Document` |
 | **`api_create_item`** | Create new Aras items | *"Create a new Part"* | `Part`, `Document` |
+| **`api_create_relationship`** | Create relationships between items | *"Link Part A to Document B"* | `Part BOM`, `Document File` |
 | **`api_call_method`** | Call Aras server methods | *"Call method GetItemsInBOM"* | Method names |
 | **`api_get_list`** | Get Aras list values | *"Show Part categories"* | List IDs |
 
@@ -131,6 +132,9 @@ Claude: Retrieved 25 Parts matching your criteria...
 
 You: "Create a new Document with name 'User Manual v2'"
 Claude: Successfully created Document with ID A1B2C3D4...
+
+You: "Create a Part BOM relationship between Part P-001 and Part P-002"
+Claude: Successfully created Part BOM relationship between P-001 and P-002!
 ```
 
 ## 🔧 Recent Fixes & Updates
