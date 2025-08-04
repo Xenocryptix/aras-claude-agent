@@ -132,3 +132,35 @@ class APIClient:
             import sys
             print(f"Error getting list {list_id}: {error}", file=sys.stderr)
             raise error 
+    
+    def create_relationship(self, source_item_id, related_item_id, relationship_type, data=None):
+        """Create a relationship between two items in Aras."""
+        try:
+            if not self.token:
+                self.authenticate()
+
+            # Prepare relationship data
+            relationship_data = {
+                "source_id": source_item_id,
+                "related_id": related_item_id,
+                **(data or {})  # Include any additional relationship properties
+            }
+
+            # Create the relationship via OData - relationships are typically created
+            # by adding to the relationship ItemType (e.g., Part BOM, Document File, etc.)
+            response = requests.post(
+                f"{self.odata_url}/{relationship_type}",
+                json=relationship_data,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': f'Bearer {self.token}'
+                }
+            )
+            response.raise_for_status()
+
+            return response.json()
+        except Exception as error:
+            import sys
+            print(f"Error creating relationship: {error}", file=sys.stderr)
+            raise error

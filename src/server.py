@@ -108,6 +108,32 @@ async def handle_list_tools() -> list[types.Tool]:
                 "required": ["list_id"],
             },
         ),
+        types.Tool(
+            name="api_create_relationship",
+            description="Create a relationship between two items in Aras",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "source_item_id": {
+                        "type": "string",
+                        "description": "The ID of the source item",
+                    },
+                    "related_item_id": {
+                        "type": "string",
+                        "description": "The ID of the related/target item",
+                    },
+                    "relationship_type": {
+                        "type": "string",
+                        "description": "The relationship ItemType (e.g., 'Part BOM', 'Document File', 'Part Supersedure')",
+                    },
+                    "data": {
+                        "type": "object",
+                        "description": "Optional additional relationship properties (quantity, sort_order, etc.)",
+                    }
+                },
+                "required": ["source_item_id", "related_item_id", "relationship_type"],
+            },
+        ),
     ]
 
 @server.call_tool()
@@ -184,6 +210,23 @@ async def handle_call_tool(
                 types.TextContent(
                     type="text",
                     text=f"List {arguments['list_id']} data:\n{json.dumps(list_data, indent=2)}"
+                )
+            ]
+        
+        elif name == "api_create_relationship":
+            if not arguments or "source_item_id" not in arguments or "related_item_id" not in arguments or "relationship_type" not in arguments:
+                raise ValueError("Source item ID, related item ID, and relationship type are required")
+            
+            result = api_client.create_relationship(
+                arguments["source_item_id"], 
+                arguments["related_item_id"], 
+                arguments["relationship_type"],
+                arguments.get("data")
+            )
+            return [
+                types.TextContent(
+                    type="text",
+                    text=f"Successfully created {arguments['relationship_type']} relationship:\nSource: {arguments['source_item_id']}\nTarget: {arguments['related_item_id']}\nResult: {json.dumps(result, indent=2)}"
                 )
             ]
         

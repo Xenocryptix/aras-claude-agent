@@ -4,6 +4,8 @@
 
 This Model Context Protocol (MCP) server enables Claude Desktop to interact with Aras Innovator using modern OAuth 2.0 authentication and OData REST APIs, allowing you to query PLM data, create items, and call methods directly from your AI assistant.
 
+**🆕 NEW: HTTP Streamable Transport!** - Now includes both STDIO (desktop) and HTTP Streamable (web-accessible) transport implementations.
+
 ## ✨ What can you do?
 
 - 🔐 **Secure OAuth 2.0 authentication** with Aras Innovator 14+
@@ -12,6 +14,28 @@ This Model Context Protocol (MCP) server enables Claude Desktop to interact with
 - 🔧 **Call Aras server methods** and custom endpoints
 - 📋 **Access lists** and configuration data
 - 🛡️ **Enterprise-grade security** with bearer token authentication
+- 🌐 **HTTP Streamable support** for web-accessible deployments
+
+## 🚀 Choose Your Transport
+
+### 📱 STDIO Transport (Claude Desktop)
+- **Perfect for**: Claude Desktop integration
+- **Deployment**: Local development, single user
+- **Setup**: Follow standard MCP configuration
+
+### 🌐 HTTP Streamable Transport (Web/Server)
+- **Perfect for**: Web deployments, multiple users, production
+- **Deployment**: Any server environment
+- **Setup**: See [STREAMABLE_README.md](STREAMABLE_README.md)
+
+```bash
+# STDIO (original)
+python main.py
+
+# HTTP Streamable (new)
+python streamable_server.py
+python streamable_client.py
+```
 
 ## 📋 Prerequisites
 
@@ -150,6 +174,7 @@ Claude: Successfully created Document with ID A1B2C3D4...
 
 ## 🏗️ Architecture
 
+### STDIO Transport (Claude Desktop)
 ```
 Claude Desktop
     ↓ JSON-RPC
@@ -158,6 +183,39 @@ MCP Server (stdio)
 Aras Innovator
     ↓ OData REST API
 PLM Database
+```
+
+### HTTP Streamable Transport (Web/Server)
+```
+Client/Browser
+    ↓ HTTP/SSE
+MCP Server (streamable)
+    ↓ OAuth 2.0
+Aras Innovator
+    ↓ OData REST API
+PLM Database
+```
+
+## 🆕 HTTP Streamable Implementation
+
+This project now includes a full HTTP Streamable implementation! See [STREAMABLE_README.md](STREAMABLE_README.md) for:
+
+- 🌐 **Web-accessible MCP server** with HTTP/SSE transport
+- 🖥️ **Interactive client** with command-line interface
+- 🤖 **AI-powered queries** using Anthropic's Claude
+- 📊 **Health monitoring** and status endpoints
+- 🔧 **Production-ready** deployment options
+
+Quick start with HTTP Streamable:
+```bash
+# Start server
+python streamable_server.py --port 8123
+
+# Run client (new terminal)
+python streamable_client.py
+
+# Test everything
+python test_streamable.py
 ```
 
 ## 🤝 Contributing
