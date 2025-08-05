@@ -15,21 +15,18 @@ import asyncio
 import json
 import os
 from typing import Any, Dict, Optional
-from contextlib import asynccontextmanager
 
-import uvicorn
-from fastapi import FastAPI, Request, Response, HTTPException
-from fastapi.responses import StreamingResponse
-import httpx
-
-from mcp.server.fastmcp import FastMCP
+from fastmcp import FastMCP
 from .api_client import APIClient
 from .config import URL
 
 # Initialize FastMCP server for Aras API tools
-# json_response=False enables Server-Sent Events streaming
-# stateless_http=False enables session management for better performance
-mcp = FastMCP(name="aras-api-server", json_response=False, stateless_http=False)
+# FastMCP 2.0 handles HTTP transport natively
+mcp = FastMCP(
+    name="aras-api-server",
+    version="1.0.0",
+    instructions="A Model Context Protocol server for Aras Innovator API integration"
+)
 
 # Global API client instance
 api_client = APIClient()
@@ -190,27 +187,29 @@ async def api_create_document_with_file(
     """
     return "❌ Document with file creation functionality not yet implemented in the base API client. This tool is reserved for future implementation."
 
-# Health check endpoint
-@mcp.get("/health")
-async def health_check():
+# Add health check endpoint using FastMCP's custom routes
+@mcp.custom_route("/health", methods=["GET"])
+async def health_check(request):
     """Health check endpoint for the Aras MCP server."""
-    return {
+    from starlette.responses import JSONResponse
+    return JSONResponse({
         "status": "healthy",
         "service": "aras-mcp-streamable-server",
         "version": "1.0.0",
         "aras_server": URL
-    }
+    })
 
-# Server status endpoint
-@mcp.get("/status")
-async def server_status():
+# Add server status endpoint
+@mcp.custom_route("/status", methods=["GET"])
+async def server_status(request):
     """Get detailed server status including Aras connection status."""
+    from starlette.responses import JSONResponse
     try:
         # Test authentication without storing token
         test_client = APIClient()
         auth_status = test_client.authenticate()
         
-        return {
+        return JSONResponse({
             "service": "aras-mcp-streamable-server",
             "version": "1.0.0",
             "aras_server": URL,
@@ -225,66 +224,40 @@ async def server_status():
                 "api_upload_file (placeholder)",
                 "api_create_document_with_file (placeholder)"
             ]
-        }
+        })
     except Exception as error:
-        return {
+        return JSONResponse({
             "service": "aras-mcp-streamable-server",
             "version": "1.0.0",
             "aras_server": URL,
             "authentication": "error",
             "error": str(error)
-        }
-
-def create_app() -> FastAPI:
-    """Create and configure the FastAPI application."""
-    
-    @asynccontextmanager
-    async def lifespan(app: FastAPI):
-        """Application lifespan manager."""
-        print(f"🚀 Starting Aras MCP Streamable HTTP Server")
-        print(f"📡 Aras Server: {URL}")
-        print(f"🔧 Available tools: 8 (6 active + 2 placeholders)")
-        yield
-        print("🛑 Shutting down Aras MCP Streamable HTTP Server")
-    
-    # Create FastAPI app with the MCP streamable HTTP application
-    app = FastAPI(
-        title="Aras MCP Streamable HTTP Server",
-        description="A Model Context Protocol HTTP Streamable server for Aras Innovator API integration",
-        version="1.0.0",
-        lifespan=lifespan
-    )
-    
-    # Mount the MCP streamable HTTP app at the root
-    app.mount("/", mcp.streamable_http_app)
-    
-    return app
+        })
 
 def main():
     """Main entry point for the server."""
     parser = argparse.ArgumentParser(description="Run Aras MCP Streamable HTTP Server")
     parser.add_argument("--port", type=int, default=int(os.getenv("PORT", 8123)), help="Localhost port to listen on")
     parser.add_argument("--host", type=str, default=os.getenv("HOST", "localhost"), help="Host to bind to")
-    parser.add_argument("--reload", action="store_true", help="Enable auto-reload for development")
     parser.add_argument("--log-level", type=str, default=os.getenv("LOG_LEVEL", "info"), 
                        choices=["debug", "info", "warning", "error"], help="Log level")
     args = parser.parse_args()
 
-    # Create the FastAPI app
-    app = create_app()
-    
+    print(f"🚀 Starting Aras MCP Streamable HTTP Server")
+    print(f"📡 Aras Server: {URL}")
+    print(f"🔧 Available tools: 8 (6 active + 2 placeholders)")
     print(f"🌐 Server will be available at: http://{args.host}:{args.port}")
     print(f"📋 Health check: http://{args.host}:{args.port}/health")
     print(f"📊 Status: http://{args.host}:{args.port}/status")
     print(f"🔗 MCP Endpoint: http://{args.host}:{args.port}/mcp")
 
-    # Start the server with Streamable HTTP transport
-    uvicorn.run(
-        app,
+    # Run using FastMCP 2.0's native HTTP transport
+    mcp.run(
+        transport="http",
         host=args.host,
         port=args.port,
-        reload=args.reload,
-        log_level=args.log_level.lower()
+        log_level=args.log_level.lower(),
+        path="/mcp"
     )
 
 if __name__ == "__main__":

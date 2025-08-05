@@ -14,8 +14,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ ./src/
 COPY streamable_server.py .
 COPY streamable_client.py .
-COPY example_usage.py .
-COPY test_streamable.py .
 COPY healthcheck.py .
 
 # Copy documentation

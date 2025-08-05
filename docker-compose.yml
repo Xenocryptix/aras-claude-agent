@@ -50,6 +50,7 @@ services:
     # Network configuration
     networks:
       - aras-network
+      - mcp-network
 
   # Optional: Reverse proxy with nginx
   nginx:

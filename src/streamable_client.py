@@ -6,7 +6,7 @@ A Model Context Protocol HTTP Streamable client for interacting with Aras Innova
 Created by D. Theoden  
 Date: August 4, 2025
 
-Based on the original Aras MCP server and the mcp-streamable-http example.
+Migrated to FastMCP 2.0 - August 5, 2025
 Learn more about Aras development at: https://www.arasdeveloper.com
 """
 
@@ -16,8 +16,8 @@ import json
 from typing import Optional, Dict, Any, List
 from contextlib import AsyncExitStack
 
-from mcp import ClientSession
-from mcp.client.streamable_http import streamablehttp_client
+from fastmcp import Client
+from fastmcp.transports import HTTPTransport
 
 # Optional: Anthropic integration for AI-powered queries
 try:
@@ -34,7 +34,7 @@ except ImportError:
     print("⚠️  python-dotenv not available. Install with: pip install python-dotenv")
 
 class ArasMCPClient:
-    """MCP Client for interacting with Aras MCP Streamable HTTP server."""
+    """MCP Client for interacting with Aras MCP Streamable HTTP server using FastMCP 2.0."""
 
     def __init__(self, anthropic_api_key: Optional[str] = None):
         """Initialize the Aras MCP client.
@@ -42,11 +42,8 @@ class ArasMCPClient:
         Args:
             anthropic_api_key: Optional Anthropic API key for AI-powered queries
         """
-        # Initialize session and client objects
-        self.session: Optional[ClientSession] = None
-        self.exit_stack = AsyncExitStack()
-        self._session_context = None
-        self._streams_context = None
+        # Initialize client
+        self.client: Optional[Client] = None
         
         # Initialize Anthropic client if available and API key provided
         self.anthropic = None
@@ -57,7 +54,7 @@ class ArasMCPClient:
     async def connect_to_server(
         self, server_url: str, headers: Optional[Dict[str, str]] = None
     ) -> None:
-        """Connect to an Aras MCP server running with HTTP Streamable transport.
+        """Connect to an Aras MCP server running with HTTP transport.
         
         Args:
             server_url: The MCP server URL (e.g., http://localhost:8123/mcp)
@@ -66,20 +63,16 @@ class ArasMCPClient:
         try:
             print(f"🔗 Connecting to Aras MCP server: {server_url}")
             
-            self._streams_context = streamablehttp_client(
-                url=server_url,
-                headers=headers or {},
-            )
-            read_stream, write_stream, _ = await self._streams_context.__aenter__()
-
-            self._session_context = ClientSession(read_stream, write_stream)
-            self.session: ClientSession = await self._session_context.__aenter__()
-
-            await self.session.initialize()
+            # Create FastMCP 2.0 client with HTTP transport
+            transport = HTTPTransport(server_url, headers=headers or {})
+            self.client = Client(transport=transport)
+            
+            # Initialize the connection
+            await self.client.__aenter__()
             print("✅ Successfully connected to Aras MCP server")
             
             # List available tools
-            tools_response = await self.session.list_tools()
+            tools_response = await self.client.list_tools()
             available_tools = [tool.name for tool in tools_response.tools]
             print(f"🔧 Available tools: {', '.join(available_tools)}")
             
@@ -89,12 +82,12 @@ class ArasMCPClient:
 
     async def test_connection(self) -> str:
         """Test the connection to the Aras server."""
-        if not self.session:
+        if not self.client:
             return "❌ Not connected to MCP server"
         
         try:
-            result = await self.session.call_tool("test_api_connection", {})
-            return result.content[0].text if result.content else "No response"
+            result = await self.client.call_tool("test_api_connection", {})
+            return result.text if hasattr(result, 'text') else str(result)
         except Exception as e:
             return f"❌ Connection test failed: {e}"
 
@@ -113,7 +106,7 @@ class ArasMCPClient:
             filter_param: Optional filter parameter (OData $filter syntax)
             select: Optional select parameter for specific fields
         """
-        if not self.session:
+        if not self.client:
             return "❌ Not connected to MCP server"
         
         try:
@@ -125,8 +118,8 @@ class ArasMCPClient:
             if select:
                 args["select"] = select
                 
-            result = await self.session.call_tool("api_get_items", args)
-            return result.content[0].text if result.content else "No response"
+            result = await self.client.call_tool("api_get_items", args)
+            return result.text if hasattr(result, 'text') else str(result)
         except Exception as e:
             return f"❌ Error getting items: {e}"
 
@@ -137,15 +130,15 @@ class ArasMCPClient:
             endpoint: The API endpoint/ItemType (e.g., 'Part', 'Document')
             data: The item data as dictionary
         """
-        if not self.session:
+        if not self.client:
             return "❌ Not connected to MCP server"
         
         try:
-            result = await self.session.call_tool("api_create_item", {
+            result = await self.client.call_tool("api_create_item", {
                 "endpoint": endpoint,
                 "data": data
             })
-            return result.content[0].text if result.content else "No response"
+            return result.text if hasattr(result, 'text') else str(result)
         except Exception as e:
             return f"❌ Error creating item: {e}"
 
@@ -156,15 +149,15 @@ class ArasMCPClient:
             method_name: The method name to call
             data: The method parameters
         """
-        if not self.session:
+        if not self.client:
             return "❌ Not connected to MCP server"
         
         try:
-            result = await self.session.call_tool("api_call_method", {
+            result = await self.client.call_tool("api_call_method", {
                 "method_name": method_name,
                 "data": data
             })
-            return result.content[0].text if result.content else "No response"
+            return result.text if hasattr(result, 'text') else str(result)
         except Exception as e:
             return f"❌ Error calling method: {e}"
 
@@ -175,7 +168,7 @@ class ArasMCPClient:
             list_id: The list ID to retrieve
             expand: Optional expand parameter
         """
-        if not self.session:
+        if not self.client:
             return "❌ Not connected to MCP server"
         
         try:
@@ -183,8 +176,8 @@ class ArasMCPClient:
             if expand:
                 args["expand"] = expand
                 
-            result = await self.session.call_tool("api_get_list", args)
-            return result.content[0].text if result.content else "No response"
+            result = await self.client.call_tool("api_get_list", args)
+            return result.text if hasattr(result, 'text') else str(result)
         except Exception as e:
             return f"❌ Error getting list: {e}"
 
@@ -203,7 +196,7 @@ class ArasMCPClient:
             relationship_type: The relationship ItemType (e.g., 'Part BOM', 'Document File')
             data: Optional additional relationship properties
         """
-        if not self.session:
+        if not self.client:
             return "❌ Not connected to MCP server"
         
         try:
@@ -215,8 +208,8 @@ class ArasMCPClient:
             if data:
                 args["data"] = data
                 
-            result = await self.session.call_tool("api_create_relationship", args)
-            return result.content[0].text if result.content else "No response"
+            result = await self.client.call_tool("api_create_relationship", args)
+            return result.text if hasattr(result, 'text') else str(result)
         except Exception as e:
             return f"❌ Error creating relationship: {e}"
 
@@ -227,7 +220,7 @@ class ArasMCPClient:
             file_path: Path to the file to upload
             filename: Optional custom filename
         """
-        if not self.session:
+        if not self.client:
             return "❌ Not connected to MCP server"
         
         try:
@@ -235,8 +228,8 @@ class ArasMCPClient:
             if filename:
                 args["filename"] = filename
                 
-            result = await self.session.call_tool("api_upload_file", args)
-            return result.content[0].text if result.content else "No response"
+            result = await self.client.call_tool("api_upload_file", args)
+            return result.text if hasattr(result, 'text') else str(result)
         except Exception as e:
             return f"❌ Error uploading file: {e}"
 
@@ -253,7 +246,7 @@ class ArasMCPClient:
             file_path: Path to the file to upload
             filename: Optional custom filename
         """
-        if not self.session:
+        if not self.client:
             return "❌ Not connected to MCP server"
         
         try:
@@ -264,8 +257,8 @@ class ArasMCPClient:
             if filename:
                 args["filename"] = filename
                 
-            result = await self.session.call_tool("api_create_document_with_file", args)
-            return result.content[0].text if result.content else "No response"
+            result = await self.client.call_tool("api_create_document_with_file", args)
+            return result.text if hasattr(result, 'text') else str(result)
         except Exception as e:
             return f"❌ Error creating document with file: {e}"
 
@@ -278,12 +271,12 @@ class ArasMCPClient:
         if not self.anthropic:
             return "❌ Anthropic AI not available. Set ANTHROPIC_API_KEY environment variable."
         
-        if not self.session:
+        if not self.client:
             return "❌ Not connected to MCP server"
 
         try:
             # Get available tools
-            tools_response = await self.session.list_tools()
+            tools_response = await self.client.list_tools()
             available_tools = [
                 {
                     "name": tool.name,
@@ -314,13 +307,13 @@ class ArasMCPClient:
                     tool_args = content.input
 
                     # Execute tool call
-                    result = await self.session.call_tool(tool_name, tool_args)
+                    result = await self.client.call_tool(tool_name, tool_args)
                     final_text.append(f"[Calling tool {tool_name} with args {tool_args}]")
 
                     # Continue conversation with tool results  
                     if hasattr(content, "text") and content.text:
                         messages.append({"role": "assistant", "content": content.text})
-                    messages.append({"role": "user", "content": result.content[0].text})
+                    messages.append({"role": "user", "content": result.text if hasattr(result, 'text') else str(result)})
 
                     # Get next response from Claude
                     response = self.anthropic.messages.create(
@@ -401,12 +394,10 @@ class ArasMCPClient:
                 print(f"❌ Error: {e}")
 
     async def cleanup(self) -> None:
-        """Properly clean up the session and streams."""
+        """Properly clean up the client connection."""
         try:
-            if self._session_context:
-                await self._session_context.__aexit__(None, None, None)
-            if self._streams_context:
-                await self._streams_context.__aexit__(None, None, None)
+            if self.client:
+                await self.client.__aexit__(None, None, None)
             print("✅ Connection closed")
         except Exception as e:
             print(f"⚠️  Error during cleanup: {e}")
