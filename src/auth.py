@@ -17,6 +17,16 @@ load_dotenv()
 def get_bearer_token():
     """Get bearer token using OAuth 2.0 Resource Owner Password Credentials Grant."""
     try:
+        # Validate required variables
+        if not URL:
+            raise ValueError("API_URL is not set. Check your environment variables or .env file")
+        if not USERNAME:
+            raise ValueError("API_USERNAME is not set. Check your environment variables or .env file")
+        if not PASSWORD:
+            raise ValueError("API_PASSWORD is not set. Check your environment variables or .env file")
+        if not DATABASE:
+            raise ValueError("ARAS_DATABASE is not set. Check your environment variables or .env file")
+            
         # Create OAuth2 session with Resource Owner Password Credentials Grant
         client = LegacyApplicationClient(client_id='IOMApp')
         oauth = OAuth2Session(client=client)
@@ -45,6 +55,16 @@ def get_bearer_token():
 def get_bearer_token_manual():
     """Fallback manual OAuth 2.0 implementation."""
     try:
+        # Validate required variables
+        if not URL:
+            raise ValueError("API_URL is not set. Check your environment variables or .env file")
+        if not USERNAME:
+            raise ValueError("API_USERNAME is not set. Check your environment variables or .env file")
+        if not PASSWORD:
+            raise ValueError("API_PASSWORD is not set. Check your environment variables or .env file")
+        if not DATABASE:
+            raise ValueError("ARAS_DATABASE is not set. Check your environment variables or .env file")
+            
         token_url = f"{URL}/oauthserver/connect/token"
         
         # Prepare OAuth 2.0 token request with database parameter

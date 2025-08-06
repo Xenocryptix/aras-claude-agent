@@ -11,9 +11,9 @@ services:
       - "8123:8123"
     environment:
       # Aras Server Configuration
-      - ARAS_URL=${ARAS_URL:-http://your-aras-server/Server}
-      - ARAS_USERNAME=${ARAS_USERNAME:-admin}
-      - ARAS_PASSWORD=${ARAS_PASSWORD:-your_password}
+      - API_URL=${API_URL:-http://your-aras-server/Server}
+      - API_USERNAME=${API_USERNAME:-admin}
+      - API_PASSWORD=${API_PASSWORD:-your_password}
       - ARAS_DATABASE=${ARAS_DATABASE:-InnovatorSolutions}
       
       # Optional: Anthropic API for AI features

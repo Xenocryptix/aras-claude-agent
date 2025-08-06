@@ -51,8 +51,8 @@ ehthumbs.db
 Thumbs.db
 
 # Environment files (will be mounted separately)
-.env
-*.env
+# .env
+# *.env
 !docker-config/env.example
 
 # Logs

@@ -56,9 +56,9 @@ Edit `docker-config/.env` with your settings:
 
 ```env
 # Required Aras settings
-ARAS_URL=http://your-aras-server/Server
-ARAS_USERNAME=your_username
-ARAS_PASSWORD=your_password
+API_URL=http://your-aras-server/Server
+API_USERNAME=your_username
+API_PASSWORD=your_password
 ARAS_DATABASE=InnovatorSolutions
 
 # Optional AI integration
