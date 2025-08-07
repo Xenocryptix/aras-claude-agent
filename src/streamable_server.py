@@ -13,6 +13,7 @@ Learn more about Aras development at: https://www.arasdeveloper.com
 import argparse
 import asyncio
 import json
+import logging
 import os
 from typing import Any, Dict, Optional
 
@@ -37,10 +38,13 @@ async def test_api_connection() -> str:
     try:
         authenticated = api_client.authenticate()
         if authenticated:
+            logging.info("API connection test successful")
             return f"✅ Successfully authenticated with Aras API!\nBearer token obtained and ready for API calls.\nServer URL: {api_client.url}"
         else:
+            logging.warning("API connection test failed - authentication unsuccessful")
             return "❌ Failed to authenticate with Aras API. Please check your credentials."
     except Exception as error:
+        logging.error(f"API connection test failed with exception: {error}")
         return f"❌ Authentication error: {str(error)}"
 
 @mcp.tool()
@@ -94,6 +98,27 @@ async def api_create_item(endpoint: str, data: Dict[str, Any]) -> str:
     
     except Exception as error:
         return f"❌ Error creating item at {endpoint}: {str(error)}"
+
+@mcp.tool()
+async def api_update_item(endpoint: str, item_id: str, data: Dict[str, Any]) -> str:
+    """PATCH operation - Update an existing item using Aras API.
+    
+    Args:
+        endpoint: The API endpoint/ItemType to update (e.g., 'Part', 'Document')
+        item_id: The ID of the item to update
+        data: The updated item data as JSON object (only include fields to be changed)
+    """
+    try:
+        if not api_client.token:
+            authenticated = api_client.authenticate()
+            if not authenticated:
+                return "❌ Failed to authenticate with Aras API."
+        
+        result = api_client.update_item(endpoint, item_id, data)
+        return f"✅ Successfully updated item {item_id} at {endpoint}:\n{json.dumps(result, indent=2)}"
+    
+    except Exception as error:
+        return f"❌ Error updating item {item_id} at {endpoint}: {str(error)}"
 
 @mcp.tool()
 async def api_call_method(method_name: str, data: Dict[str, Any]) -> str:
@@ -163,6 +188,26 @@ async def api_create_relationship(
         return f"❌ Error creating relationship: {str(error)}"
 
 @mcp.tool()
+async def api_delete_relationship(relationship_type: str, relationship_id: str) -> str:
+    """Delete a relationship between two items in Aras.
+    
+    Args:
+        relationship_type: The relationship ItemType (e.g., 'Part BOM', 'Document File', 'Part Supersedure')
+        relationship_id: The ID of the specific relationship record to delete
+    """
+    try:
+        if not api_client.token:
+            authenticated = api_client.authenticate()
+            if not authenticated:
+                return "❌ Failed to authenticate with Aras API."
+        
+        result = api_client.delete_relationship(relationship_type, relationship_id)
+        return f"✅ Successfully deleted {relationship_type} relationship with ID: {relationship_id}\nResult: {json.dumps(result, indent=2)}"
+    
+    except Exception as error:
+        return f"❌ Error deleting relationship: {str(error)}"
+
+@mcp.tool()
 async def api_upload_file(file_path: str, filename: Optional[str] = None) -> str:
     """Upload a file to the Aras Innovator database.
     
@@ -218,9 +263,11 @@ async def server_status(request):
                 "test_api_connection",
                 "api_get_items", 
                 "api_create_item",
+                "api_update_item",
                 "api_call_method",
                 "api_get_list",
                 "api_create_relationship",
+                "api_delete_relationship",
                 "api_upload_file (placeholder)",
                 "api_create_document_with_file (placeholder)"
             ]
@@ -243,13 +290,26 @@ def main():
                        choices=["debug", "info", "warning", "error"], help="Log level")
     args = parser.parse_args()
 
+    # Configure logging
+    log_level = getattr(logging, args.log_level.upper())
+    logging.basicConfig(
+        level=log_level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+
     print(f"🚀 Starting Aras MCP Streamable HTTP Server")
     print(f"📡 Aras Server: {URL}")
-    print(f"🔧 Available tools: 8 (6 active + 2 placeholders)")
+    print(f"🔧 Available tools: 10 (8 active + 2 placeholders)")
     print(f"🌐 Server will be available at: http://{args.host}:{args.port}")
     print(f"📋 Health check: http://{args.host}:{args.port}/health")
     print(f"📊 Status: http://{args.host}:{args.port}/status")
     print(f"🔗 MCP Endpoint: http://{args.host}:{args.port}/mcp")
+
+    # Log server startup
+    logging.info(f"Starting Aras MCP Streamable HTTP Server on {args.host}:{args.port}")
+    logging.info(f"Aras Server URL: {URL}")
+    logging.info(f"Log level set to: {args.log_level.upper()}")
 
     # Run using FastMCP 2.0's native HTTP transport
     mcp.run(

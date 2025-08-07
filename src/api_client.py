@@ -6,6 +6,7 @@ Date: June 12, 2025
 
 import requests
 import json
+import logging
 from .auth import get_bearer_token
 from .config import URL
 
@@ -19,10 +20,12 @@ class APIClient:
         """Authenticate with the API and store the token."""
         try:
             self.token = get_bearer_token()
+            logging.info(f"✅ Successfully authenticated with Aras API server: {self.url}")
             return True
         except Exception as error:
             import sys
             print(f"Authentication error: {error}", file=sys.stderr)
+            logging.error(f"❌ Authentication failed with Aras API server: {self.url} - {error}")
             return False
 
     def get_items(self, endpoint, expand=None, filter_param=None, select=None):
@@ -81,6 +84,29 @@ class APIClient:
         except Exception as error:
             import sys
             print(f"Error creating item: {error}", file=sys.stderr)
+            raise error
+
+    def update_item(self, endpoint, item_id, data):
+        """Update an existing item using Aras OData API."""
+        try:
+            if not self.token:
+                self.authenticate()
+
+            response = requests.patch(
+                f"{self.odata_url}/{endpoint}('{item_id}')",
+                json=data,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': f'Bearer {self.token}'
+                }
+            )
+            response.raise_for_status()
+
+            return response.json()
+        except Exception as error:
+            import sys
+            print(f"Error updating item: {error}", file=sys.stderr)
             raise error
 
     def call_method(self, method_name, data):
@@ -163,4 +189,31 @@ class APIClient:
         except Exception as error:
             import sys
             print(f"Error creating relationship: {error}", file=sys.stderr)
+            raise error
+
+    def delete_relationship(self, relationship_type, relationship_id):
+        """Delete a relationship between two items in Aras.
+        
+        Args:
+            relationship_type: The relationship ItemType (e.g., 'Part BOM', 'Document File')
+            relationship_id: The ID of the specific relationship record to delete
+        """
+        try:
+            if not self.token:
+                self.authenticate()
+
+            # Delete the relationship via OData DELETE operation
+            response = requests.delete(
+                f"{self.odata_url}/{relationship_type}('{relationship_id}')",
+                headers={
+                    'Accept': 'application/json',
+                    'Authorization': f'Bearer {self.token}'
+                }
+            )
+            response.raise_for_status()
+
+            return {"status": "success", "message": f"Relationship {relationship_id} deleted successfully"}
+        except Exception as error:
+            import sys
+            print(f"Error deleting relationship: {error}", file=sys.stderr)
             raise error
