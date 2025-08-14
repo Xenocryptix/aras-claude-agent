@@ -89,23 +89,6 @@ deploy() {
     print_success "Services deployed successfully"
 }
 
-# Deploy with nginx (optional)
-deploy_with_nginx() {
-    print_status "Deploying services with nginx reverse proxy..."
-    
-    # Create logs directory
-    mkdir -p logs
-    
-    # Start services with nginx profile
-    if command -v docker-compose &> /dev/null; then
-        docker-compose --profile nginx up -d
-    else
-        docker compose --profile nginx up -d
-    fi
-    
-    print_success "Services with nginx deployed successfully"
-}
-
 # Check service health
 check_health() {
     print_status "Checking service health..."
@@ -164,7 +147,6 @@ show_usage() {
     echo ""
     echo "Commands:"
     echo "  deploy          Deploy the MCP server"
-    echo "  deploy-nginx    Deploy with nginx reverse proxy"
     echo "  build           Build Docker image only"
     echo "  health          Check service health"
     echo "  logs            Show service logs"
@@ -174,7 +156,6 @@ show_usage() {
     echo ""
     echo "Examples:"
     echo "  $0 deploy           # Deploy basic server"
-    echo "  $0 deploy-nginx     # Deploy with nginx reverse proxy"
     echo "  $0 health           # Check if service is healthy"
     echo "  $0 logs             # Follow service logs"
 }
@@ -187,13 +168,6 @@ main() {
             create_config
             build_image
             deploy
-            check_health
-            ;;
-        "deploy-nginx")
-            check_docker
-            create_config
-            build_image
-            deploy_with_nginx
             check_health
             ;;
         "build")

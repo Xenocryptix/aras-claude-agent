@@ -7,14 +7,13 @@ This document provides a quick reference for all Docker-related files and config
 ### Core Docker Files
 - **`Dockerfile`** - Development Docker image configuration
 - **`Dockerfile.prod`** - Production-optimized Docker image (multi-stage build)
-- **`docker-compose.yml`** - Complete orchestration with nginx option
+- **`docker-compose.yml`** - Complete orchestration
 - **`.dockerignore`** - Files to exclude from Docker build context
 - **`deploy.sh`** - Automated deployment script
 - **`healthcheck.py`** - Custom health check for containers
 
 ### Configuration Files
 - **`docker-config/env.example`** - Environment template
-- **`docker-config/nginx.conf`** - Nginx reverse proxy configuration
 - **`DOCKER_README.md`** - Comprehensive deployment guide
 
 ## 🚀 Quick Reference
@@ -23,9 +22,6 @@ This document provides a quick reference for all Docker-related files and config
 ```bash
 # Basic setup
 ./deploy.sh deploy
-
-# With nginx reverse proxy  
-./deploy.sh deploy-nginx
 
 # Manual deployment
 docker-compose up -d
@@ -64,8 +60,7 @@ LOG_LEVEL=info
 
 ### Docker Compose Services
 - **aras-mcp-server**: Main MCP server container
-- **nginx**: Optional reverse proxy with SSL/rate limiting
-- **Networks**: Isolated network for service communication
+- **Networks**: External network for service communication with reverse proxy
 - **Volumes**: Persistent logging and configuration
 
 ### Security Features
@@ -73,7 +68,7 @@ LOG_LEVEL=info
 - Resource limits (CPU/memory)
 - Health checks for monitoring
 - Network isolation
-- SSL/TLS support (nginx)
+- SSL/TLS support via external reverse proxy (Caddy)
 
 ## 📊 Monitoring Endpoints
 
@@ -112,9 +107,14 @@ docker exec -it aras-mcp-server bash
 Client → Docker Host:8123 → MCP Container:8123
 ```
 
-### With Nginx
+### Direct Access
 ```
-Client → Docker Host:80/443 → Nginx Container → MCP Container:8123
+Client → MCP Container:8123
+```
+
+### With External Reverse Proxy (Recommended)
+```
+Client → External Reverse Proxy (Caddy/nginx) → MCP Container:8123
 ```
 
 ## 📋 Deployment Checklist

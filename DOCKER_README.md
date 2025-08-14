@@ -1,10 +1,28 @@
 # Aras MCP Docker Deployment Guide
 
-This document provides comprehensive instructions for deploying the Aras MCP Streamable HTTP server using Docker on Ubuntu.
+This document provides comprehensive instructions for deploying the Aras MCP# Start basic server
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+
+# Rebuild and restart
+docker-compose up -d --buildserver using Docker on Ubuntu.
 
 ## 🚀 Quick Start
 
-### 1. Prerequisites
+### 1. Pr# Allow standard HTTP/HTTPS ports (for external reverse proxy)
+sudo ufw allow 80
+sudo ufw allow 443
+
+# Allow MCP port (for direct access or reverse proxy backend)
+sudo ufw allow 8123
+
+# Enable firewall
+sudo ufw enablees
 
 ```bash
 # Update system
@@ -29,9 +47,6 @@ chmod +x deploy.sh
 
 # Deploy the server
 ./deploy.sh deploy
-
-# Or deploy with nginx reverse proxy
-./deploy.sh deploy-nginx
 ```
 
 ### 3. Manual Deployment
@@ -70,7 +85,6 @@ ANTHROPIC_API_KEY=your_anthropic_key
 The `docker-compose.yml` includes:
 
 - **Basic deployment**: MCP server only
-- **With nginx**: Reverse proxy with SSL/rate limiting
 - **Resource limits**: CPU and memory constraints
 - **Health checks**: Automatic service monitoring
 - **Logging**: Persistent log storage
@@ -82,9 +96,9 @@ The `docker-compose.yml` includes:
 Internet → Docker Host:8123 → MCP Server Container
 ```
 
-### With Nginx
+### With External Reverse Proxy (Recommended for Production)
 ```
-Internet → Docker Host:80/443 → Nginx Container → MCP Server Container
+Internet → External Reverse Proxy (Caddy/nginx) → MCP Server Container
 ```
 
 ## 🔧 Management Commands
@@ -97,9 +111,6 @@ Internet → Docker Host:80/443 → Nginx Container → MCP Server Container
 
 # Deploy basic server
 ./deploy.sh deploy
-
-# Deploy with nginx
-./deploy.sh deploy-nginx
 
 # Check service health
 ./deploy.sh health
@@ -119,9 +130,6 @@ Internet → Docker Host:80/443 → Nginx Container → MCP Server Container
 ```bash
 # Start services
 docker-compose up -d
-
-# Start with nginx
-docker-compose --profile nginx up -d
 
 # View logs
 docker-compose logs -f
@@ -243,9 +251,6 @@ mkdir -p docker-config/ssl
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -keyout docker-config/ssl/key.pem \
   -out docker-config/ssl/cert.pem
-
-# Use with nginx profile
-docker-compose --profile nginx up -d
 ```
 
 ### Docker Secrets (Production)
@@ -284,11 +289,10 @@ deploy:
 ### Scaling
 
 ```bash
-# Run multiple instances behind nginx
+# Run multiple instances with external load balancer
 docker-compose up -d --scale aras-mcp-server=3
 
-# Use external load balancer
-# Configure multiple hosts in nginx upstream
+# Use external reverse proxy (Caddy/nginx) for load balancing
 ```
 
 ## 🔄 Updates and Maintenance
@@ -334,8 +338,8 @@ docker system prune -a --volumes
 ### Port Mapping
 
 - `8123` - MCP server (HTTP Streamable)
-- `80` - Nginx HTTP (redirects to HTTPS)
-- `443` - Nginx HTTPS (when SSL configured)
+- `80` - HTTP (for external reverse proxy)
+- `443` - HTTPS (for external reverse proxy)
 
 ### Firewall Setup
 
