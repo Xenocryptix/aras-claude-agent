@@ -100,11 +100,11 @@ async def api_create_item(endpoint: str, data: Dict[str, Any]) -> str:
         return f"❌ Error creating item at {endpoint}: {str(error)}"
 
 @mcp.tool()
-async def api_update_item(endpoint: str, item_id: str, data: Dict[str, Any]) -> str:
+async def api_update_item(item_type: str, item_id: str, data: Dict[str, Any]) -> str:
     """PATCH operation - Update an existing item using Aras API.
     
     Args:
-        endpoint: The API endpoint/ItemType to update (e.g., 'Part', 'Document')
+        item_type: The ItemType to update (e.g., 'Part', 'Document')
         item_id: The ID of the item to update
         data: The updated item data as JSON object (only include fields to be changed)
     """
@@ -114,8 +114,12 @@ async def api_update_item(endpoint: str, item_id: str, data: Dict[str, Any]) -> 
             if not authenticated:
                 return "❌ Failed to authenticate with Aras API."
         
-        result = api_client.update_item(endpoint, item_id, data)
-        return f"✅ Successfully updated item {item_id} at {endpoint}:\n{json.dumps(result, indent=2)}"
+        # Get the latest ID for the item using its config_id
+        latest_id = api_client.get_latest_item(item_type, item_id)
+        logging.info(f"Resolved config_id '{item_id}' to latest ID: {latest_id}")
+        
+        result = api_client.update_item(item_type, latest_id, data)
+        return f"✅ Successfully updated item {latest_id} (latest for config_id: {item_id}) at {item_type}:\n{json.dumps(result, indent=2)}"
     
     except Exception as error:
         return f"❌ Error updating item {item_id} at {endpoint}: {str(error)}"
@@ -164,6 +168,8 @@ async def api_get_list(list_id: str, expand: Optional[str] = None) -> str:
 async def api_create_relationship(
     source_item_id: str,
     related_item_id: str, 
+    source_item_type: str,
+    related_item_type: str,
     relationship_type: str,
     data: Optional[Dict[str, Any]] = None
 ) -> str:
@@ -172,6 +178,8 @@ async def api_create_relationship(
     Args:
         source_item_id: The ID of the source item
         related_item_id: The ID of the related/target item
+        source_item_type: The ItemType for the source item (e.g., 'Part', 'Document')
+        related_item_type: The ItemType for the related item (e.g., 'Part', 'Document')
         relationship_type: The relationship ItemType (e.g., 'Part BOM', 'Document File', 'Part Supersedure')
         data: Optional additional relationship properties (quantity, sort_order, etc.)
     """
@@ -181,8 +189,21 @@ async def api_create_relationship(
             if not authenticated:
                 return "❌ Failed to authenticate with Aras API."
         
-        result = api_client.create_relationship(source_item_id, related_item_id, relationship_type, data)
-        return f"✅ Successfully created {relationship_type} relationship:\nSource: {source_item_id}\nTarget: {related_item_id}\nResult: {json.dumps(result, indent=2)}"
+        # Always get latest IDs for both source and related items
+        final_source_id = api_client.get_latest_item(source_item_type, source_item_id)
+        logging.info(f"Resolved source config_id '{source_item_id}' to latest ID: {final_source_id}")
+        
+        final_related_id = api_client.get_latest_item(related_item_type, related_item_id)
+        logging.info(f"Resolved related config_id '{related_item_id}' to latest ID: {final_related_id}")
+        
+        result = api_client.create_relationship(final_source_id, final_related_id, relationship_type, data)
+        
+        relationship_info = f"✅ Successfully created {relationship_type} relationship:\n"
+        relationship_info += f"Source: {final_source_id} (latest for config_id: {source_item_id})\n"
+        relationship_info += f"Target: {final_related_id} (latest for config_id: {related_item_id})\n"
+        relationship_info += f"Result: {json.dumps(result, indent=2)}"
+        
+        return relationship_info
     
     except Exception as error:
         return f"❌ Error creating relationship: {str(error)}"

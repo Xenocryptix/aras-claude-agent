@@ -158,6 +158,49 @@ class APIClient:
             import sys
             print(f"Error getting list {list_id}: {error}", file=sys.stderr)
             raise error 
+
+    def get_latest_item(self, item_type, config_id):
+        """Get the latest ID of an item by its config_id.
+        
+        Args:
+            item_type: The ItemType to query (e.g., 'Part', 'Document')
+            config_id: The config_id to filter by
+            
+        Returns:
+            str: The ID of the latest item with the specified config_id
+        """
+        try:
+            if not self.token:
+                self.authenticate()
+
+            # Build OData URL with filter for config_id
+            api_url = f"{self.odata_url}/{item_type}?$filter=(config_id eq '{config_id}' and is_current eq 1)"
+            
+            response = requests.get(
+                api_url,
+                headers={
+                    'Accept': 'application/json',
+                    'Authorization': f'Bearer {self.token}'
+                }
+            )
+            response.raise_for_status()
+            
+            result = response.json()
+            
+            # Check if we got any results
+            if not result.get('value') or len(result['value']) == 0:
+                raise ValueError(f"No item found with config_id '{config_id}' in ItemType '{item_type}'")
+            
+            # Return the ID of the first (latest) item
+            item_id = result['value'][0]['id']
+            logging.info(f"✅ Found latest item ID: {item_id} for config_id: {config_id} in {item_type}")
+            return item_id
+            
+        except Exception as error:
+            import sys
+            print(f"Error getting latest item: {error}", file=sys.stderr)
+            logging.error(f"❌ Error getting latest item for config_id '{config_id}' in '{item_type}': {error}")
+            raise error
     
     def create_relationship(self, source_item_id, related_item_id, relationship_type, data=None):
         """Create a relationship between two items in Aras."""
