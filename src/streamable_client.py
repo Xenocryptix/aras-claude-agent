@@ -17,7 +17,7 @@ from typing import Optional, Dict, Any, List
 from contextlib import AsyncExitStack
 
 from fastmcp import Client
-from fastmcp.transports import HTTPTransport
+from fastmcp.client.transports import StreamableHttpTransport
 
 # Optional: Anthropic integration for AI-powered queries
 try:
@@ -64,7 +64,7 @@ class ArasMCPClient:
             print(f"🔗 Connecting to Aras MCP server: {server_url}")
             
             # Create FastMCP 2.0 client with HTTP transport
-            transport = HTTPTransport(server_url, headers=headers or {})
+            transport = StreamableHttpTransport(server_url, headers=headers or {})
             self.client = Client(transport=transport)
             
             # Initialize the connection
@@ -73,7 +73,7 @@ class ArasMCPClient:
             
             # List available tools
             tools_response = await self.client.list_tools()
-            available_tools = [tool.name for tool in tools_response.tools]
+            available_tools = [tool.name for tool in tools_response]
             print(f"🔧 Available tools: {', '.join(available_tools)}")
             
         except Exception as e:
@@ -283,7 +283,7 @@ class ArasMCPClient:
                     "description": tool.description,
                     "input_schema": tool.inputSchema,
                 }
-                for tool in tools_response.tools
+                for tool in tools_response
             ]
 
             messages = [{"role": "user", "content": query}]
