@@ -75,3 +75,4 @@ pids
 
 /workflow
 /n8n-caddy-config
+/docker-config

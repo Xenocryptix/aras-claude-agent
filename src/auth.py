@@ -99,4 +99,50 @@ def get_bearer_token_manual():
     except Exception as err:
         import sys
         print(f"Error in get_bearer_token_manual: {err}", file=sys.stderr)
+        raise err
+
+def is_token_valid(token, api_url):
+    """Check if a token is still valid by making a test API call."""
+    try:
+        if not token:
+            return False
+            
+        # Test the token with a lightweight API call
+        test_url = f"{api_url}/Server/Odata/$metadata"
+        response = requests.get(
+            test_url,
+            headers={
+                'Authorization': f'Bearer {token}',
+                'Accept': 'application/json'
+            },
+            timeout=10
+        )
+        
+        # Token is valid if we get a 200 response
+        return response.status_code == 200
+        
+    except Exception:
+        # Any exception means the token is invalid or there's a connection issue
+        return False
+
+def reauthenticate():
+    """Force reauthentication by getting a new bearer token.
+    
+    This function can be called when a token has expired or is invalid.
+    Returns a new valid token or raises an exception if authentication fails.
+    """
+    try:
+        # Try to get a new token using the primary method
+        new_token = get_bearer_token()
+        
+        # Validate the new token
+        if is_token_valid(new_token, URL):
+            print("✅ Successfully reauthenticated with Aras API server")
+            return new_token
+        else:
+            raise Exception("New token validation failed")
+            
+    except Exception as err:
+        import sys
+        print(f"❌ Reauthentication failed: {err}", file=sys.stderr)
         raise err 

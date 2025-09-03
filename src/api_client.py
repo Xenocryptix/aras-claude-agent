@@ -7,7 +7,7 @@ Date: June 12, 2025
 import requests
 import json
 import logging
-from .auth import get_bearer_token
+from .auth import get_bearer_token, is_token_valid, reauthenticate
 from .config import URL
 
 class APIClient:
@@ -28,12 +28,65 @@ class APIClient:
             logging.error(f"❌ Authentication failed with Aras API server: {self.url} - {error}")
             return False
 
+    def reauthenticate(self):
+        """Force reauthentication by getting a new bearer token."""
+        try:
+            self.token = reauthenticate()
+            logging.info(f"✅ Successfully reauthenticated with Aras API server: {self.url}")
+            return True
+        except Exception as error:
+            import sys
+            print(f"Reauthentication error: {error}", file=sys.stderr)
+            logging.error(f"❌ Reauthentication failed with Aras API server: {self.url} - {error}")
+            return False
+
+    def is_token_valid(self):
+        """Check if the current token is still valid."""
+        return is_token_valid(self.token, self.url)
+
+    def ensure_valid_token(self):
+        """Ensure we have a valid token, reauthenticating if necessary."""
+        if not self.token:
+            return self.authenticate()
+        
+        if not self.is_token_valid():
+            logging.info("Token expired, attempting reauthentication...")
+            return self.reauthenticate()
+        
+        return True
+
+    def _make_request_with_retry(self, method, url, **kwargs):
+        """Make an HTTP request with automatic token refresh on 401 errors."""
+        # Ensure we have a valid token
+        if not self.ensure_valid_token():
+            raise Exception("Failed to obtain valid authentication token")
+        
+        # Add authorization header
+        headers = kwargs.get('headers', {})
+        headers['Authorization'] = f'Bearer {self.token}'
+        kwargs['headers'] = headers
+        
+        # Make the request
+        response = getattr(requests, method.lower())(url, **kwargs)
+        
+        # If we get a 401, try to reauthenticate once and retry
+        if response.status_code == 401:
+            logging.info("Received 401 error, attempting reauthentication...")
+            if self.reauthenticate():
+                # Update the authorization header with new token
+                headers['Authorization'] = f'Bearer {self.token}'
+                kwargs['headers'] = headers
+                # Retry the request
+                response = getattr(requests, method.lower())(url, **kwargs)
+            else:
+                raise Exception("Failed to reauthenticate after 401 error")
+        
+        response.raise_for_status()
+        return response
+
     def get_items(self, endpoint, expand=None, filter_param=None, select=None):
         """Get items from Aras OData API."""
         try:
-            if not self.token:
-                self.authenticate()
-
             # Build OData URL - endpoint should be an ItemType like 'Part', 'Document', etc.
             api_url = f"{self.odata_url}/{endpoint}"
             params = []
@@ -48,14 +101,13 @@ class APIClient:
             if params:
                 api_url += "?" + "&".join(params)
 
-            response = requests.get(
+            response = self._make_request_with_retry(
+                'GET',
                 api_url,
                 headers={
-                    'Accept': 'application/json',
-                    'Authorization': f'Bearer {self.token}'
+                    'Accept': 'application/json'
                 }
             )
-            response.raise_for_status()
 
             return response.json()
         except Exception as error:
@@ -66,19 +118,15 @@ class APIClient:
     def create_item(self, endpoint, data):
         """Create a new item using Aras OData API."""
         try:
-            if not self.token:
-                self.authenticate()
-
-            response = requests.post(
+            response = self._make_request_with_retry(
+                'POST',
                 f"{self.odata_url}/{endpoint}",
                 json=data,
                 headers={
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': f'Bearer {self.token}'
+                    'Accept': 'application/json'
                 }
             )
-            response.raise_for_status()
 
             return response.json()
         except Exception as error:
@@ -89,19 +137,15 @@ class APIClient:
     def update_item(self, endpoint, item_id, data):
         """Update an existing item using Aras OData API."""
         try:
-            if not self.token:
-                self.authenticate()
-
-            response = requests.patch(
+            response = self._make_request_with_retry(
+                'PATCH',
                 f"{self.odata_url}/{endpoint}('{item_id}')",
                 json=data,
                 headers={
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': f'Bearer {self.token}'
+                    'Accept': 'application/json'
                 }
             )
-            response.raise_for_status()
 
             return response.json()
         except Exception as error:
@@ -112,20 +156,16 @@ class APIClient:
     def call_method(self, method_name, data):
         """Call an Aras server method."""
         try:
-            if not self.token:
-                self.authenticate()
-
             # Aras methods are typically called via OData actions
-            response = requests.post(
+            response = self._make_request_with_retry(
+                'POST',
                 f"{self.odata_url}/Method('{method_name}')",
                 json=data,
                 headers={
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': f'Bearer {self.token}'
+                    'Accept': 'application/json'
                 }
             )
-            response.raise_for_status()
 
             return response.json()
         except Exception as error:
@@ -136,22 +176,18 @@ class APIClient:
     def get_list(self, list_id, expand=None):
         """Get list data from Aras API."""
         try:
-            if not self.token:
-                self.authenticate()
-
             # Aras lists are accessed via List ItemType
             list_url = f"{self.odata_url}/List('{list_id}')"
             if expand:
                 list_url += f"?$expand={expand}"
 
-            response = requests.get(
+            response = self._make_request_with_retry(
+                'GET',
                 list_url,
                 headers={
-                    'Accept': 'application/json',
-                    'Authorization': f'Bearer {self.token}'
+                    'Accept': 'application/json'
                 }
             )
-            response.raise_for_status()
 
             return response.json()
         except Exception as error:
@@ -170,20 +206,16 @@ class APIClient:
             str: The ID of the latest item with the specified config_id
         """
         try:
-            if not self.token:
-                self.authenticate()
-
             # Build OData URL with filter for config_id
             api_url = f"{self.odata_url}/{item_type}?$filter=(config_id eq '{config_id}' and is_current eq 1)"
             
-            response = requests.get(
+            response = self._make_request_with_retry(
+                'GET',
                 api_url,
                 headers={
-                    'Accept': 'application/json',
-                    'Authorization': f'Bearer {self.token}'
+                    'Accept': 'application/json'
                 }
             )
-            response.raise_for_status()
             
             result = response.json()
             
@@ -205,9 +237,6 @@ class APIClient:
     def create_relationship(self, source_item_id, related_item_id, relationship_type, data=None):
         """Create a relationship between two items in Aras."""
         try:
-            if not self.token:
-                self.authenticate()
-
             # Prepare relationship data
             relationship_data = {
                 "source_id": source_item_id,
@@ -217,16 +246,15 @@ class APIClient:
 
             # Create the relationship via OData - relationships are typically created
             # by adding to the relationship ItemType (e.g., Part BOM, Document File, etc.)
-            response = requests.post(
+            response = self._make_request_with_retry(
+                'POST',
                 f"{self.odata_url}/{relationship_type}",
                 json=relationship_data,
                 headers={
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Authorization': f'Bearer {self.token}'
+                    'Accept': 'application/json'
                 }
             )
-            response.raise_for_status()
 
             return response.json()
         except Exception as error:
@@ -242,18 +270,14 @@ class APIClient:
             relationship_id: The ID of the specific relationship record to delete
         """
         try:
-            if not self.token:
-                self.authenticate()
-
             # Delete the relationship via OData DELETE operation
-            response = requests.delete(
+            response = self._make_request_with_retry(
+                'DELETE',
                 f"{self.odata_url}/{relationship_type}('{relationship_id}')",
                 headers={
-                    'Accept': 'application/json',
-                    'Authorization': f'Bearer {self.token}'
+                    'Accept': 'application/json'
                 }
             )
-            response.raise_for_status()
 
             return {"status": "success", "message": f"Relationship {relationship_id} deleted successfully"}
         except Exception as error:

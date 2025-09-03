@@ -16,11 +16,6 @@ COPY streamable_server.py .
 COPY streamable_client.py .
 COPY healthcheck.py .
 
-# Copy documentation
-COPY README.md .
-COPY STREAMABLE_README.md .
-COPY LICENSE .
-
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash aras && \
     chown -R aras:aras /app

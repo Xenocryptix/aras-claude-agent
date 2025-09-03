@@ -15,6 +15,7 @@ This Model Context Protocol (MCP) server enables Claude Desktop to interact with
 - 📋 **Access lists** and configuration data
 - 🛡️ **Enterprise-grade security** with bearer token authentication
 - 🌐 **HTTP Streamable support** for web-accessible deployments
+- 🔍 **Qdrant Vector Database Integration** for semantic search of Parts (NEW!)
 
 ## 🚀 Choose Your Transport
 
@@ -69,6 +70,12 @@ API_USERNAME=your-aras-username
 API_PASSWORD=your-aras-password
 ARAS_DATABASE=YourDatabase
 
+# Qdrant Vector Database Sync (Optional)
+GEMINI_API_KEY=your-google-gemini-api-key
+QDRANT_HOST=localhost
+QDRANT_PORT=6333
+QDRANT_COLLECTION=aras_parts
+
 # Optional Configuration
 API_TIMEOUT=30
 API_RETRY_COUNT=3
@@ -119,6 +126,46 @@ Restart Claude Desktop and try:
 | **`api_create_item`** | Create new Aras items | *"Create a new Part"* | `Part`, `Document` |
 | **`api_call_method`** | Call Aras server methods | *"Call method GetItemsInBOM"* | Method names |
 | **`api_get_list`** | Get Aras list values | *"Show Part categories"* | List IDs |
+| **`sync_parts_to_qdrant`** | Sync Parts to vector database | *"Sync Parts to Qdrant"* | N/A |
+| **`get_sync_service_status`** | Check sync service status | *"Check sync service status"* | N/A |
+
+## 🔍 Qdrant Vector Database Integration (Optional)
+
+The server now includes optional integration with Qdrant vector database for semantic search capabilities:
+
+### 🎯 Features
+- **Automatic syncing**: Parts are automatically synced to Qdrant when created or updated
+- **Semantic search**: Find Parts using natural language queries via vector embeddings
+- **Google Gemini embeddings**: Uses Google's Gemini AI for high-quality text embeddings
+- **Configurable**: Works with or without Qdrant - completely optional
+
+### 🚀 Setup Qdrant Sync (Optional)
+
+1. **Start Qdrant server** (Docker):
+```bash
+docker run -p 6333:6333 qdrant/qdrant
+```
+
+2. **Get Google Gemini API key**:
+   - Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+   - Create a new API key
+
+3. **Add to your `.env` file**:
+```env
+GEMINI_API_KEY=your-google-gemini-api-key
+QDRANT_HOST=localhost
+QDRANT_PORT=6333
+QDRANT_COLLECTION=aras_parts
+```
+
+4. **Test the integration**:
+   - *"Check sync service status"*
+   - *"Sync Parts to Qdrant"*
+
+### 🔧 How it works
+- When you create or update Parts, they're automatically synced to Qdrant
+- Part data (number, name, description, classification) is converted to vector embeddings
+- Future implementations can use these embeddings for semantic search
 
 ## 🔐 OAuth 2.0 Authentication
 
