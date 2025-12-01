@@ -14,7 +14,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ ./src/
 COPY streamable_server.py .
 COPY streamable_client.py .
-COPY healthcheck.py .
 
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash aras && \
@@ -23,10 +22,6 @@ USER aras
 
 # Expose the default port
 EXPOSE 8123
-
-# Health check using Python script
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python healthcheck.py || exit 1
 
 # Default command - can be overridden
 CMD ["python", "streamable_server.py", "--host", "0.0.0.0", "--port", "8123"]

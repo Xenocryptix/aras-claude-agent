@@ -20,7 +20,6 @@ from typing import Any, Dict, Optional
 from fastmcp import FastMCP
 from .api_client import APIClient
 from .config import URL
-from .sync_service import ArasQdrantSyncService
 
 # Initialize FastMCP server for Aras API tools
 # FastMCP 2.0 handles HTTP transport natively
@@ -32,106 +31,6 @@ mcp = FastMCP(
 
 # Global API client instance
 api_client = APIClient()
-
-# Global sync service instance (will be initialized if needed)
-sync_service = None
-
-def get_sync_service():
-    """Get or initialize the sync service if environment variables are available."""
-    global sync_service
-    if sync_service is None:
-        try:
-            # Check if required environment variables are present
-            if os.getenv('GEMINI_API_KEY') and os.getenv('QDRANT_HOST'):
-                sync_service = ArasQdrantSyncService()
-                logging.info("Sync service initialized - automatic Part syncing enabled")
-            else:
-                logging.info("Sync service not initialized - missing required environment variables (GEMINI_API_KEY, QDRANT_HOST)")
-        except Exception as e:
-            logging.warning(f"Failed to initialize sync service: {e}")
-            sync_service = None
-    return sync_service
-
-async def trigger_part_sync_if_enabled():
-    """Trigger Part sync to Qdrant if sync service is available."""
-    service = get_sync_service()
-    if service:
-        try:
-            logging.info("Triggering automatic Part sync to Qdrant...")
-            await service.run_sync()
-            logging.info("Part sync completed successfully")
-        except Exception as e:
-            logging.error(f"Failed to sync Parts to Qdrant: {e}")
-    else:
-        logging.debug("Sync service not available - skipping Part sync")
-
-@mcp.tool()
-async def get_sync_service_status() -> str:
-    """Get the status of the Qdrant sync service and its configuration.
-    
-    This tool shows whether the sync service is available and configured properly.
-    """
-    service = get_sync_service()
-    
-    if not service:
-        return """❌ Sync service not available.
-
-            Required environment variables:
-            - GEMINI_API_KEY: Google Gemini API key for embeddings
-            - QDRANT_HOST: Qdrant vector database host
-            - QDRANT_PORT: Qdrant port (optional, defaults to 6333)
-            - QDRANT_COLLECTION: Collection name (optional, defaults to 'aras_parts')
-            - QDRANT_API_KEY: Qdrant API key (optional)"""
-    
-    try:
-        # Test Qdrant connection
-        collections = service.qdrant_client.get_collections()
-        collection_names = [col.name for col in collections.collections]
-        
-        status = f"""✅ Sync service is available and configured.
-
-            Configuration:
-            - Qdrant Host: {service.qdrant_host}:{service.qdrant_port}
-            - Collection: {service.qdrant_collection}
-            - Embedding Model: {service.embedding_model}
-
-            Qdrant Status:
-            - Connection: ✅ Connected
-            - Available Collections: {', '.join(collection_names)}
-            - Target Collection Exists: {'✅ Yes' if service.qdrant_collection in collection_names else '❌ No (will be created on first sync)'}
-
-            Note: Parts are automatically synced to Qdrant when created or updated."""
-        
-        return status
-        
-    except Exception as e:
-        return f"""⚠️ Sync service configured but Qdrant connection failed.
-
-            Configuration:
-            - Qdrant Host: {service.qdrant_host}:{service.qdrant_port}
-            - Collection: {service.qdrant_collection}
-
-            Error: {str(e)}
-
-            Please check Qdrant server status and network connectivity."""
-
-@mcp.tool()
-async def sync_parts_to_qdrant() -> str:
-    """Manually trigger sync of Part data from Aras Innovator to Qdrant vector database.
-    
-    This tool syncs all Part items from Aras to Qdrant for semantic search capabilities.
-    Requires GEMINI_API_KEY and QDRANT_HOST environment variables to be configured.
-    """
-    service = get_sync_service()
-    if not service:
-        return "❌ Sync service not available. Please ensure GEMINI_API_KEY and QDRANT_HOST environment variables are set."
-    
-    try:
-        await service.run_sync()
-        return "✅ Successfully synced Part data to Qdrant vector database. Parts are now available for semantic search."
-    except Exception as error:
-        logging.error(f"Manual sync failed: {error}")
-        return f"❌ Failed to sync Parts to Qdrant: {str(error)}"
 
 @mcp.tool()
 async def test_api_connection() -> str:
@@ -149,47 +48,27 @@ async def test_api_connection() -> str:
         return f"❌ Authentication error: {str(error)}"
 
 @mcp.tool()
-async def reauthenticate_api() -> str:
-    """Force reauthentication with the Aras Innovator API server.
+async def authenticate_api() -> str:
+    """Authenticate with the Aras Innovator API server.
     
-    This tool is useful when your current token has expired or become invalid.
-    It will get a fresh bearer token and update the API client.
+    This tool manually authenticates to the server and gets a fresh bearer token.
+    Use this when you need to establish a connection or refresh an expired token.
     """
     try:
         # Check current token status first
         token_status = "valid" if api_client.is_token_valid() else "invalid/expired"
         
         # Force reauthentication
-        success = api_client.reauthenticate()
+        success = api_client.authenticate()
         if success:
-            logging.info("Manual reauthentication successful")
-            return f"✅ Successfully reauthenticated with Aras API!\nPrevious token status: {token_status}\nNew bearer token obtained and ready for API calls.\nServer URL: {api_client.url}"
+            logging.info("Manual authentication successful")
+            return f"✅ Successfully authenticated with Aras API!\nPrevious token status: {token_status}\nNew bearer token obtained and ready for API calls.\nServer URL: {api_client.url}"
         else:
-            logging.warning("Manual reauthentication failed")
-            return "❌ Failed to reauthenticate with Aras API. Please check your credentials and server connectivity."
+            logging.warning("Manual authentication failed")
+            return "❌ Failed to authenticate with Aras API. Please check your credentials and server connectivity."
     except Exception as error:
-        logging.error(f"Manual reauthentication failed with exception: {error}")
-        return f"❌ Reauthentication error: {str(error)}"
-
-@mcp.tool()
-async def check_token_status() -> str:
-    """Check the current authentication token status and validity.
-    
-    This tool helps diagnose authentication issues by testing if the current token
-    is still valid without making any changes.
-    """
-    try:
-        if not api_client.token:
-            return "❌ No authentication token present. Use test_api_connection or reauthenticate_api to get a token."
-        
-        is_valid = api_client.is_token_valid()
-        if is_valid:
-            return f"✅ Current authentication token is valid.\nServer URL: {api_client.url}\nToken present and working correctly."
-        else:
-            return f"❌ Current authentication token is invalid or expired.\nServer URL: {api_client.url}\nUse reauthenticate_api to get a fresh token."
-    except Exception as error:
-        logging.error(f"Token status check failed with exception: {error}")
-        return f"❌ Error checking token status: {str(error)}"
+        logging.error(f"Manual authentication failed with exception: {error}")
+        return f"❌ Authentication error: {str(error)}"
 
 @mcp.tool()
 async def api_get_items(
@@ -207,10 +86,8 @@ async def api_get_items(
         select: Optional select parameter for specific fields
     """
     try:
-        if not api_client.token:
-            authenticated = api_client.authenticate()
-            if not authenticated:
-                return "❌ Failed to authenticate with Aras API."
+        if not api_client.ensure_valid_token():
+            return "❌ Failed to authenticate with Aras API."
         
         item_data = api_client.get_items(
             endpoint,
@@ -232,16 +109,10 @@ async def api_create_item(endpoint: str, data: Dict[str, Any]) -> str:
         data: The item data as JSON object
     """
     try:
-        if not api_client.token:
-            authenticated = api_client.authenticate()
-            if not authenticated:
-                return "❌ Failed to authenticate with Aras API."
+        if not api_client.ensure_valid_token():
+            return "❌ Failed to authenticate with Aras API."
         
         result = api_client.create_item(endpoint, data)
-        
-        # Trigger Part sync if this is a Part creation
-        if endpoint.lower() == 'part':
-            await trigger_part_sync_if_enabled()
         
         return f"✅ Successfully created item at {endpoint}:\n{json.dumps(result, indent=2)}"
     
@@ -258,20 +129,14 @@ async def api_update_item(item_type: str, item_id: str, data: Dict[str, Any]) ->
         data: The updated item data as JSON object (only include fields to be changed)
     """
     try:
-        if not api_client.token:
-            authenticated = api_client.authenticate()
-            if not authenticated:
-                return "❌ Failed to authenticate with Aras API."
+        if not api_client.ensure_valid_token():
+            return "❌ Failed to authenticate with Aras API."
         
         # Get the latest ID for the item using its config_id
         latest_id = api_client.get_latest_item(item_type, item_id)
         logging.info(f"Resolved config_id '{item_id}' to latest ID: {latest_id}")
         
         result = api_client.update_item(item_type, latest_id, data)
-        
-        # Trigger Part sync if this is a Part update
-        if item_type.lower() == 'part':
-            await trigger_part_sync_if_enabled()
         
         return f"✅ Successfully updated item {latest_id} (latest for config_id: {item_id}) at {item_type}:\n{json.dumps(result, indent=2)}"
     
@@ -287,10 +152,8 @@ async def api_call_method(method_name: str, data: Dict[str, Any]) -> str:
         data: The method parameters as JSON object
     """
     try:
-        if not api_client.token:
-            authenticated = api_client.authenticate()
-            if not authenticated:
-                return "❌ Failed to authenticate with Aras API."
+        if not api_client.ensure_valid_token():
+            return "❌ Failed to authenticate with Aras API."
         
         result = api_client.call_method(method_name, data)
         return f"✅ Method {method_name} result:\n{json.dumps(result, indent=2)}"
@@ -307,10 +170,8 @@ async def api_get_list(list_id: str, expand: Optional[str] = None) -> str:
         expand: Optional expand parameter for list values
     """
     try:
-        if not api_client.token:
-            authenticated = api_client.authenticate()
-            if not authenticated:
-                return "❌ Failed to authenticate with Aras API."
+        if not api_client.ensure_valid_token():
+            return "❌ Failed to authenticate with Aras API."
         
         list_data = api_client.get_list(list_id, expand=expand)
         return f"✅ List {list_id} data:\n{json.dumps(list_data, indent=2)}"
@@ -338,10 +199,8 @@ async def api_create_relationship(
         data: Optional additional relationship properties (quantity, sort_order, etc.)
     """
     try:
-        if not api_client.token:
-            authenticated = api_client.authenticate()
-            if not authenticated:
-                return "❌ Failed to authenticate with Aras API."
+        if not api_client.ensure_valid_token():
+            return "❌ Failed to authenticate with Aras API."
         
         # Always get latest IDs for both source and related items
         final_source_id = api_client.get_latest_item(source_item_type, source_item_id)
@@ -371,10 +230,8 @@ async def api_delete_relationship(relationship_type: str, relationship_id: str) 
         relationship_id: The ID of the specific relationship record to delete
     """
     try:
-        if not api_client.token:
-            authenticated = api_client.authenticate()
-            if not authenticated:
-                return "❌ Failed to authenticate with Aras API."
+        if not api_client.ensure_valid_token():
+            return "❌ Failed to authenticate with Aras API."
         
         result = api_client.delete_relationship(relationship_type, relationship_id)
         return f"✅ Successfully deleted {relationship_type} relationship with ID: {relationship_id}\nResult: {json.dumps(result, indent=2)}"
@@ -429,32 +286,14 @@ async def server_status(request):
         test_client = APIClient()
         auth_status = test_client.authenticate()
         
-        # Check sync service status
-        service = get_sync_service()
-        sync_status = "not_configured"
-        qdrant_status = "unknown"
-        
-        if service:
-            try:
-                collections = service.qdrant_client.get_collections()
-                sync_status = "available"
-                qdrant_status = "connected"
-            except Exception:
-                sync_status = "configured_but_failed"
-                qdrant_status = "connection_failed"
-        
         return JSONResponse({
             "service": "aras-mcp-streamable-server",
             "version": "1.0.0",
             "aras_server": URL,
             "authentication": "connected" if auth_status else "failed",
-            "sync_service": {
-                "status": sync_status,
-                "qdrant_connection": qdrant_status,
-                "auto_sync_enabled": service is not None
-            },
             "available_tools": [
                 "test_api_connection",
+                "authenticate_api",
                 "api_get_items", 
                 "api_create_item",
                 "api_update_item",
@@ -463,9 +302,7 @@ async def server_status(request):
                 "api_create_relationship",
                 "api_delete_relationship",
                 "api_upload_file (placeholder)",
-                "api_create_document_with_file (placeholder)",
-                "sync_parts_to_qdrant",
-                "get_sync_service_status"
+                "api_create_document_with_file (placeholder)"
             ]
         })
     except Exception as error:
@@ -497,7 +334,6 @@ def main():
     print(f"🚀 Starting Aras MCP Streamable HTTP Server")
     print(f"📡 Aras Server: {URL}")
     print(f"🔧 Available tools: 12 (10 active + 2 placeholders)")
-    print(f"🔄 Sync Service: {'Enabled' if get_sync_service() else 'Disabled'} (automatic Part syncing)")
     print(f"🌐 Server will be available at: http://{args.host}:{args.port}")
     print(f"📋 Health check: http://{args.host}:{args.port}/health")
     print(f"📊 Status: http://{args.host}:{args.port}/status")

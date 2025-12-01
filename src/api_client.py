@@ -7,7 +7,7 @@ Date: June 12, 2025
 import requests
 import json
 import logging
-from .auth import get_bearer_token, is_token_valid, reauthenticate
+from .auth import authenticate, test_token
 from .config import URL
 
 class APIClient:
@@ -19,7 +19,7 @@ class APIClient:
     def authenticate(self):
         """Authenticate with the API and store the token."""
         try:
-            self.token = get_bearer_token()
+            self.token = authenticate()
             logging.info(f"✅ Successfully authenticated with Aras API server: {self.url}")
             return True
         except Exception as error:
@@ -28,21 +28,25 @@ class APIClient:
             logging.error(f"❌ Authentication failed with Aras API server: {self.url} - {error}")
             return False
 
-    def reauthenticate(self):
-        """Force reauthentication by getting a new bearer token."""
-        try:
-            self.token = reauthenticate()
-            logging.info(f"✅ Successfully reauthenticated with Aras API server: {self.url}")
-            return True
-        except Exception as error:
-            import sys
-            print(f"Reauthentication error: {error}", file=sys.stderr)
-            logging.error(f"❌ Reauthentication failed with Aras API server: {self.url} - {error}")
-            return False
-
     def is_token_valid(self):
         """Check if the current token is still valid."""
-        return is_token_valid(self.token, self.url)
+        if not self.token:
+            return False
+        # Use the auth module's test_token which tests the stored token
+        # But we need to test our local token, so we do it directly
+        try:
+            test_url = f"{self.url}/Server/Odata/$metadata"
+            response = requests.get(
+                test_url,
+                headers={
+                    'Authorization': f'Bearer {self.token}',
+                    'Accept': 'application/json'
+                },
+                timeout=10
+            )
+            return response.status_code == 200
+        except Exception:
+            return False
 
     def ensure_valid_token(self):
         """Ensure we have a valid token, reauthenticating if necessary."""
@@ -51,7 +55,7 @@ class APIClient:
         
         if not self.is_token_valid():
             logging.info("Token expired, attempting reauthentication...")
-            return self.reauthenticate()
+            return self.authenticate()
         
         return True
 
@@ -72,7 +76,7 @@ class APIClient:
         # If we get a 401, try to reauthenticate once and retry
         if response.status_code == 401:
             logging.info("Received 401 error, attempting reauthentication...")
-            if self.reauthenticate():
+            if self.authenticate():
                 # Update the authorization header with new token
                 headers['Authorization'] = f'Bearer {self.token}'
                 kwargs['headers'] = headers
